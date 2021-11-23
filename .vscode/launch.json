@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--n_BM", "50", "--p_t", "0", "--p_r", "-85",
+                "--granularity", "15.625",
+                "--scenario", "pattern", "--name_addon", "dev",
+                "--method", "naive-kmeans",
+                "--splits", "5", "5", "5",
+                "--base_emulator_batch_size", "64",
+                "--n_GU", "5", "--n_ABS", "5"
+            ]
+        }
+    ]
+}

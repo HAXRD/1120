@@ -72,8 +72,26 @@ python train.py \
 --num_env_episodes ${num_env_episodes} \
 --emulator_replay_size ${emulator_replay_size}
 
+# CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
+# python train.py \
+# --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
+# --p_t ${p_t} --p_r ${p_r} \
+# --granularity ${granularity} \
+# --scenario ${scenario} --name_addon ${name_addon} \
+# --splits 50 50 5 \
+# --method ${method} \
+# --file_episode_limit ${file_episode_limit} \
+# --num_base_emulator_epochs ${num_base_emulator_epochs} \
+# --base_emulator_batch_size ${base_emulator_batch_size} \
+# --emulator_batch_size ${emulator_batch_size} \
+# --emulator_val_batch_size ${emulator_val_batch_size} \
+# --planning_batch_size ${planning_batch_size} \
+# --num_env_episodes ${num_env_episodes} \
+# --emulator_replay_size ${emulator_replay_size} \
+# --use_preload
+
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-python train.py \
+python eval.py \
 --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
 --p_t ${p_t} --p_r ${p_r} \
 --granularity ${granularity} \

@@ -148,8 +148,8 @@ def get_config():
 
     ####### evaluation #######
     ## shared
-    parser.add_argument("--num_eval_trials", type=int, default=100,
-                        help="# of trials for evaluations.")
+    parser.add_argument("--num_eval_episodes", type=int, default=10_000,
+                        help="# of episodes for evaluations.")
 
     # precise
 

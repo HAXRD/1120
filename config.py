@@ -92,6 +92,7 @@ def get_config():
                         help="by default clip grad norm when training base emulator.")
 
     ## emulator φ params
+    parser.add_argument("--emulator_net_size", type=str, default="small")
     parser.add_argument("--emulator_lr", type=float, default=1.e-4,
                         help="lr for emulator.")
     parser.add_argument("--num_env_episodes", type=int, default=10_000_000,

@@ -39,7 +39,7 @@ def pattern_procedure(args, runner, RENDER):
     best_CRs = []
 
     # start eval for pattern-style
-    for _episode in range(episodes):
+    for _episode in tqdm(range(episodes)):
 
         start = time.time()
 
@@ -115,7 +115,8 @@ def eval_procedure(args, runner, RENDER="human", TENSORBOARD=False, curr_episode
             assert curr_episode is not None
             runner.writer.add_scalar("mean_CR", mean_CR, curr_episode)
 
-        return best_CRs
+    print(f"[eval{' | ' + str(curr_episode) if not curr_episode == None else ''}] end.")
+    return best_CRs
 
 def evaluation(args, eval_runner, test_q, done_training):
     """

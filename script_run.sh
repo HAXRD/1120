@@ -1,7 +1,5 @@
 #!/bin/bash
 
-rm -rf results_run
-
 #### hyperparams ###
 CUDA_VISIBLE_DEVICES=1
 ### env params ###
@@ -16,19 +14,33 @@ granularity=15.625
 ### prepare params ###
 name_addon=run
 scenario=pattern
-method=naive-kmeans
+method=mutation-kmeans
 
+### pattern only ###
 
-# generate terrain file
-for n in 0 ${n_BM}
-do
-    python gen_terrain.py --n_BM $n
-done
+# replays
+emulator_replay_size=10_000
 
-# pretrain
+# # generate terrain file
+# for n in 0 ${n_BM}
+# do
+#     python gen_terrain.py --n_BM $n
+# done
+
+# # pretrain
+# CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
+# python pretrain.py \
+# --n_BM ${n_BM} --p_t ${p_t} --p_r ${p_r} \
+# --granularity ${granularity} \
+# --name_addon ${name_addon} --scenario ${scenario} --method ${method} \
+# --splits 50000 5000 50
+
+# train
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-python pretrain.py \
---n_BM ${n_BM} --p_t ${p_t} --p_r ${p_r} \
+python train.py \
+--n_BM ${n_BM} \
+--p_t ${p_t} --p_r ${p_r} \
 --granularity ${granularity} \
---name_addon ${name_addon} --scenario ${scenario} --method ${method} \
---splits 50000 5000 50
+--scenario ${scenario} --name_addon ${name_addon} \
+--method ${method} \
+--emulator_replay_size ${emulator_replay_size}

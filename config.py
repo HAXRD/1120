@@ -73,8 +73,8 @@ def get_config():
                         help="by default 'True', use GPU to train.")
     parser.add_argument("--name_addon", type=str, default="",
                         help="naming addon to differentiate different experiments.")
-    parser.add_argument("--use_eval", action="store_false", default=True,
-                        help="by default evaluation.")
+    parser.add_argument("--use_eval", action="store_true", default=False,
+                        help="by default not doing evaluation.")
 
     ####### pattern only #######
     ## base emulator φ_0 params
@@ -98,9 +98,9 @@ def get_config():
                         help="# of environment epsiodes to train.")
     parser.add_argument("--num_episodes_per_trial", default=100,
                         help="# of episodes for each trial, between each trial, reset env.")
-    parser.add_argument("--emulator_batch_size", type=int, default=64,
+    parser.add_argument("--emulator_batch_size", type=int, default=128,
                         help="batch size for training emulator.")
-    parser.add_argument("--emulator_val_batch_size", type=int, default=512,
+    parser.add_argument("--emulator_val_batch_size", type=int, default=128,
                         help="batch size for emulator validation.")
     parser.add_argument("--emulator_train_repeats", type=int, default=2,
                         help="number of repeats to train emulator with samples.")
@@ -110,7 +110,7 @@ def get_config():
                         help="by default clip norm when training emulator.")
 
     ## planning methods
-    parser.add_argument("--planning_batch_size", type=int, default=512,
+    parser.add_argument("--planning_batch_size", type=int, default=256,
                         help="batch size for planning.")
 
     # naive-kmeans
@@ -143,12 +143,12 @@ def get_config():
     ####### interval #######
     parser.add_argument("--log_interval", type=int, default=1,
                         help="every # of episodes to log.")
-    parser.add_argument("--eval_interval", type=int, default=100,
+    parser.add_argument("--eval_interval", type=int, default=5,
                         help="every # of episodes to evaluate.")
 
     ####### evaluation #######
     ## shared
-    parser.add_argument("--num_eval_episodes", type=int, default=10_000,
+    parser.add_argument("--num_eval_episodes", type=int, default=5000,
                         help="# of episodes for evaluations.")
 
     # precise

@@ -27,12 +27,8 @@ if __name__ == "__main__":
     torch.set_num_threads(1)
     if args.cuda and torch.cuda.is_available():
         print("choose to use gpu...")
-        if torch.cuda.device_count() == 1:
-            device1 = torch.device("cuda:0")
-            device2 = torch.device("cpu")
-        elif torch.cuda.device_count() == 2:
-            device1 = torch.device("cuda:0")
-            device2 = torch.device("cuda:1")
+        device1 = torch.device("cuda:0")
+        device2 = torch.device("cpu")
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
     else:
@@ -86,8 +82,8 @@ if __name__ == "__main__":
 
     if args.scenario == "pattern":
         from runners.pattern import Runner
-    elif args.scenario == "precise":
-        from runners.precise import Runner
+    # elif args.scenario == "precise":
+    #     from runners.precise import Runner
     runner = Runner("TrainRunner", config)
     eval_runner = Runner("EvalRunner", eval_config)
 

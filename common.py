@@ -21,6 +21,13 @@ def make_env(args, TYPE):
     env.seed(seed)
     return env
 
+def dict2csv(output_dict, fpath):
+    with open(fpath, "w") as f:
+        writer = csv.writer(f, delimeter=',')
+        for k, v in output_dict.items():
+            v = [k] + v
+            writer.writerow(v)
+
 def sync(fh):
     """This make sure data is writter to disk."""
     fh.flush()

@@ -101,6 +101,7 @@ class Runner(object):
 
         self.emulator_val_loss = float('inf')
         self.emulator_ckpts_dir = os.path.join(self.method_dir, "emulator_ckpts")
+        self.emulator_fpath = None
         self.best_emulator_fpath = os.path.join(self.emulator_ckpts_dir, "best_emulator.pt")
         if not os.path.isdir(self.emulator_ckpts_dir):
             os.makedirs(self.emulator_ckpts_dir)
@@ -158,7 +159,7 @@ class Runner(object):
             self.emulator_val_replay.load_from_npz(self.preload_dir)
             info_stamp_fpath = os.path.join(self.preload_dir, "info_stamp.pt")
             self.info_stamp = torch.load(info_stamp_fpath)
-            pprint(f"[train | preload] preload 'info_stamp' \n{self.info_stamp}")
+            print(f"[train | preload] preload 'info_stamp'.")
         else:
             self.info_stamp = None
 
@@ -238,7 +239,7 @@ class Runner(object):
                 # save emulator replay
                 self.emulator_replay.save_to_npz(self.file_size_limit, self.preload_dir)
                 self.emulator_val_replay.save_to_npz(self.file_size_limit, self.preload_dir)
-                
+
                 # save other preload info
                 info_stamp = {
                     "episode": _episode,
@@ -246,13 +247,18 @@ class Runner(object):
                     "rand_state": random.getstate()
                 }
                 torch.save(info_stamp, os.path.join(self.preload_dir, "info_stamp.pt"))
-                pprint(f"[train | save preload] saved 'info_stamp', \n{info_stamp}")
+                print(f"[train | save preload] saved 'info_stamp'")
 
             # train emulator
             if self.emulator_replay.is_full() and self.emulator_val_replay.is_full():
 
                 emulator_loss, emulator_val_loss = self.train_emulator()
                 if emulator_loss is not None:
+
+                    # save current episode ckpt
+                    self.emulator_fpath = os.path.join(self.emulator_ckpts_dir, f"emulator-{_episode + 1}.pt")
+                    torch.save(self.emulator.model.state_dict(), self.emulator_fpath)
+
                     if emulator_val_loss < self.emulator_val_loss:
                         best_emulator_flag_counter = 0
 
@@ -261,10 +267,6 @@ class Runner(object):
                         print(f"[train | emulator train] updating emulator ckpt, {_episode + 1}/{num_env_episodes}, loss {emulator_loss}, val loss {emulator_val_loss}.")
                     else:
                         best_emulator_flag_counter += 1
-
-                        # save current episode ckpt
-                        emulator_fpath = os.path.join(self.emulator_ckpts_dir, f"emulator-{_episode + 1}.pt")
-                        torch.save(self.emulator.model.state_dict(), emulator_fpath)
 
                         print(f"[train | emulator train] not updating emulator ckpt, {_episode + 1}/{num_env_episodes}, loss {emulator_loss}, val loss {emulator_val_loss}. ")
 

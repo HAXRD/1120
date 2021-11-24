@@ -12,7 +12,7 @@ from tqdm import tqdm
 from pprint import pprint
 
 from config import get_config
-from common import make_env
+from common import make_env, dict2csv
 
 @contextlib.contextmanager
 def temp_seed(seed):
@@ -95,7 +95,7 @@ def pattern_procedure(args, runner, RENDER):
 
 def eval_procedure(args, runner, RENDER="human", TENSORBOARD=False, curr_episode=None):
     """
-
+    Evaluation procedure.
     """
 
     print(f"[eval{' | ' + str(curr_episode) if not curr_episode == None else ''}] start.")
@@ -116,6 +116,48 @@ def eval_procedure(args, runner, RENDER="human", TENSORBOARD=False, curr_episode
             runner.writer.add_scalar("mean_CR", mean_CR, curr_episode)
 
         return best_CRs
+
+def evaluation(args, eval_runner, test_q, done_training):
+    """
+    Target function for subprocess evaluation.
+    """
+
+    plot = {
+        "best_CRs_list": [],
+        "mean_CRs": [],
+        "episode_i": [],
+    }
+
+    best_eval_avg_CR = 0.
+    best_episode_i = -1
+
+    while True:
+        if not test_q.empty():
+            curr_episode, emulator_fpath = test_q.get()
+            eval_runner.emulator_load(emulator_fpath)
+
+            print(f"{curr_episode}, {emulator_fpath}")
+
+            best_CRs = eval_procedure(args, eval_runner, RENDER="non-display", TENSORBOARD=True, curr_episode=curr_episode)
+
+            # record to plot
+            plot["best_CRs_list"].append(best_CRs)
+            plot["mean_CRs"].append(np.mean(best_CRs))
+            plot["episode_i"].append(curr_episode)
+
+            dict2csv(plot, os.path.join(args.method_dir, "curve.csv"))
+
+            # update best
+            avg_CR = np.mean(best_CRs)
+            if avg_CR > best_eval_avg_CR:
+                best_eval_avg_CR = avg_CR
+                best_episode_i = curr_episode
+
+            if done_training.value and test_q.empty():
+                with open(os.path.join(args.method_dir, "eval_think_best.txt"), "wb") as f:
+                    f.write(f"best_episode_i: {best_episode_i}")
+                break
+
 
 if __name__ == "__main__":
     """

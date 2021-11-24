@@ -14,6 +14,7 @@ from multiprocessing.sharedctypes import Value
 
 from config import get_config
 from common import make_env
+from eval import evaluation
 
 if __name__ == "__main__":
 
@@ -26,12 +27,18 @@ if __name__ == "__main__":
     torch.set_num_threads(1)
     if args.cuda and torch.cuda.is_available():
         print("choose to use gpu...")
-        device = torch.device("cuda:0")
+        if torch.cuda.device_count() == 1:
+            device1 = torch.device("cuda:0")
+            device2 = torch.device("cpu")
+        elif torch.cuda.device_count() == 2:
+            device1 = torch.device("cuda:0")
+            device2 = torch.device("cuda:1")
         torch.backends.cudnn.benchmark = False
         torch.backends.cudnn.deterministic = True
     else:
         print("chosse to use cpu...")
-        device = torch.device("cpu")
+        device1 = torch.device("cpu")
+        device2 = torch.device("cpu")
 
     # dirs
     run_dir = args.run_dir
@@ -57,36 +64,42 @@ if __name__ == "__main__":
 
     # env
     env = make_env(args, "train")
-    # eval_env = make_env(args, "eval") if args.use_eval else None
+    eval_env = make_env(args, "eval") if args.use_eval else None
 
     config = {
         "args": args,
         "run_dir": run_dir,
         "method_dir": method_dir,
         "env": env,
-        "device": device,
+        "device": device1,
         "writer": writer,
     }
 
-    # eval_config = {
-    #     "args": args,
-    #     "run_dir": run_dir,
-    #     "method_dir": method_dir,
-    #     "env": eval_env,
-    #     "device": torch.device("cpu"),
-    #     "writer": writer
-    # }
+    eval_config = {
+        "args": args,
+        "run_dir": run_dir,
+        "method_dir": method_dir,
+        "env": eval_env,
+        "device": device2,
+        "writer": writer
+    }
 
     if args.scenario == "pattern":
         from runners.pattern import Runner
     elif args.scenario == "precise":
         from runners.precise import Runner
     runner = Runner("TrainRunner", config)
-    eval_runner = Runner("EvalRunner", config)
+    eval_runner = Runner("EvalRunner", eval_config)
 
     # eval subprocess
     test_q = Queue()
     done_training = Value('i', False)
-    # p = mp.Process(target=)
+    p = mp.Process(target=evaluation, args=(args, eval_runner, test_q, done_training))
+    p.start()
 
     runner.run(test_q)
+
+    # close envs
+    env.close()
+    if args.use_eval and eval_env is not env:
+        eval_env.close()

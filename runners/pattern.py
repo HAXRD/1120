@@ -64,6 +64,8 @@ class Runner(object):
     """
     def __init__(self, runner_name, config):
 
+        assert runner_name in ["TrainRunner", "EvalRunner"]
+
         self.runner_name = runner_name
         self.args = config["args"]
         self.run_dir = config["run_dir"]
@@ -78,7 +80,10 @@ class Runner(object):
         self.world_len = self.args.world_len
         self.render = self.args.render
         self.K = self.args.K
-        self.top_k = self.args.n_step_explore
+        if self.runner_name == "TrainRunner":
+            self.top_k = self.args.n_step_explore + self.args.n_step_serve
+        elif self.runner_name == "EvalRunner":
+            self.top_k = self.args.n_step_explore
 
         ####### prepare params #######
         self.method = self.args.method
@@ -124,7 +129,7 @@ class Runner(object):
 
         ## eval
         self.use_eval = self.args.use_eval
-        self.num_eval_trials = self.args.num_eval_trials
+        self.num_eval_episodes = self.args.num_eval_episodes
 
         ## preload
         self.use_preload = self.args.use_preload
@@ -184,10 +189,10 @@ class Runner(object):
             if self.method == "naive-kmeans":
                 pass
             elif self.method == "mutation-kmeans":
-                planning_size, planning_P_ABS = self.kmeans_sampling(self.num_mutation_seeds, self.num_mutations_per_seed)
+                planning_size, planning_P_ABSs = self.mutation_kmeans(self.num_mutation_seeds, self.num_mutations_per_seed)
             elif self.method == "map-elite":
                 pass
-            assert planning_P_ABS.shape == (planning_size, K, K)
+            assert planning_P_ABSs.shape == (planning_size, K, K)
 
             # only do planning for "mutation-kmeans" or "map-elite"
             if self.method in ["mutation-kmeans", "map-elite"]:
@@ -197,7 +202,7 @@ class Runner(object):
                 assert repeated_P_GUs.shape == (planning_size, K, K)
 
                 # use emulator to select top k transitions
-                top_k_P_GUs, top_k_P_ABSs, top_k_P_rec_CGUs = self.plan(repeated_P_GUs, planning_P_ABS) # (top_k, K, K)
+                top_k_P_GUs, top_k_P_ABSs, top_k_P_rec_CGUs = self.plan(repeated_P_GUs, planning_P_ABSs) # (top_k, K, K)
 
             # interact with env
             top_k_P_CGUs = np.zeros((top_k, K, K), dtype=np.float32)
@@ -274,7 +279,7 @@ class Runner(object):
         self.emulator.model.load_state_dict(emulator_state_dict)
         print(f"[train | {self.runner_name} | emulator load] loaded emulator from '{emulator_fpath}'.")
 
-    def kmeans_sampling(self, num_seeds, num_samples_per_seed):
+    def mutation_kmeans(self, num_seeds, num_samples_per_seed):
         """
         Use different seeds to compute kmeans centers as P_ABSs.
         Then for each kmeans ABS, use nearby sampling to get

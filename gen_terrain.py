@@ -40,7 +40,7 @@ def gen_BMs(world_len, mesh_len, n_BM, save_dir, seed=2021):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--world_len', type=int, default=1000)
-    parser.add_argument('--mesh_len', type=int, default=50)
+    parser.add_argument('--mesh_len', type=int, default=31.25)
     parser.add_argument('--n_BM', type=int, default=50)
     parser.add_argument('--save_dir', type=str, default='./')
     parser.add_argument('--seed', type=int, default=2021)

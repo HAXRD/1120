@@ -11,13 +11,21 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--n_BM", "50", "--p_t", "0", "--p_r", "-85",
+                "--n_BM", "50", "--n_GU", "5", "--n_ABS", "5",
+                 "--p_t", "0", "--p_r", "-85",
                 "--granularity", "15.625",
                 "--scenario", "pattern", "--name_addon", "dev",
-                "--method", "naive-kmeans",
                 "--splits", "5", "5", "5",
-                "--base_emulator_batch_size", "64",
-                "--n_GU", "5", "--n_ABS", "5"
+                "--method", "mutation-kmeans",
+                "--file_episode_limit", "50",
+                "--num_base_emulator_epochs", "5",
+                "--base_emulator_batch_size", "32",
+                "--n_GU", "5", "--n_ABS", "5",
+                "--emulator_batch_size", "32", "--emulator_val_batch_size", "32",
+                "--planning_batch_size", "32",
+                "--num_env_episodes", "1000",
+                "--emulator_replay_size", "1000",
+                "--use_preload"
             ]
         }
     ]

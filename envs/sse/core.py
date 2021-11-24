@@ -223,7 +223,7 @@ class World(object):
             else:
                 _gu.color = COLORs['green']
 
-        print(f"[env | update] updated GUs' `covered_by` list.")
+        # print(f"[env | update] updated GUs' `covered_by` list.")
 
     def compute_KMEANS_centers(self, gus, seed=0):
         """compute KMEANS centers w/ given GUs."""
@@ -365,7 +365,7 @@ class World(object):
         R_2D_NLoS = compute_R_2D_NLoS(path_loss, h_ABS, h_GU, f_c)
         R_2D_LoS = compute_R_2D_LoS(path_loss, h_ABS, h_GU, f_c)
 
-        print(f"[env | LoS & NLoS] LoS (2D): {R_2D_LoS}, NLoS (2D): {R_2D_NLoS}")
+        # print(f"[env | LoS & NLoS] LoS (2D): {R_2D_LoS}, NLoS (2D): {R_2D_NLoS}")
         return (
             R_2D_LoS, R_2D_NLoS
         )

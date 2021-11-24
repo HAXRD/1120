@@ -65,8 +65,8 @@ def get_config():
     ####### prepare params #######
     parser.add_argument("--scenario", type=str, required=True,
                         help="either 'precise' or 'pattern'.")
-    parser.add_argument("--method", type=str, default="",
-                        help="among ['', 'naive-kmeans', 'mutation-kmeans', 'MAPE-Elite'].")
+    parser.add_argument("--method", type=str, default="mutation-kmeans",
+                        help="among ['', 'naive-kmeans', 'mutation-kmeans', 'map-elite'].")
     parser.add_argument("--seed", type=int, default=2021,
                         help="random seed for numpy&torch")
     parser.add_argument("--cuda", action="store_false", default=True,
@@ -77,7 +77,7 @@ def get_config():
                         help="by default evaluation.")
 
     ####### pattern only #######
-    # base emulator φ_0 params
+    ## base emulator φ_0 params
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training base emulator.")
     parser.add_argument("--file_episode_limit", type=int, default=50000,
@@ -91,7 +91,7 @@ def get_config():
     parser.add_argument("--base_emulator_grad_clip_norm", action="store_false", default=True,
                         help="by default clip grad norm when training base emulator.")
 
-    # emulator φ params
+    ## emulator φ params
     parser.add_argument("--emulator_lr", type=float, default=1.e-4,
                         help="lr for emulator.")
     parser.add_argument("--num_env_episodes", type=int, default=10_000_000,
@@ -100,17 +100,54 @@ def get_config():
                         help="# of episodes for each trial, between each trial, reset env.")
     parser.add_argument("--emulator_batch_size", type=int, default=64,
                         help="batch size for training emulator.")
-    parser.add_argument("--emulator_val_batch-size", type=int, default=512,
+    parser.add_argument("--emulator_val_batch_size", type=int, default=512,
                         help="batch size for emulator validation.")
+    parser.add_argument("--emulator_train_repeats", type=int, default=2,
+                        help="number of repeats to train emulator with samples.")
     parser.add_argument("--num_emulator_tolerance_epochs", type=int, default=5,
                         help="# of epochs to break the training loop after seeing non-decreasing validation loss (this tries to avoid potential overfitting) for emulator.")
     parser.add_argument("--emulator_grad_clip_norm", action="store_false", default=True,
                         help="by default clip norm when training emulator.")
 
+    ## planning methods
+    parser.add_argument("--planning_batch_size", type=int, default=512,
+                        help="batch size for planning.")
 
+    # naive-kmeans
+
+    # mutation-kmeans
+    parser.add_argument("--num_mutation_seeds", type=int, default=32,
+                        help="# of different seeds to mutate from.")
+    parser.add_argument("--num_mutations_per_seed", type=int, default=256,
+                        help="# of mutations per seed to mutate.")
+    parser.add_argument("--L", type=int, default=3,
+                        help="# of outer rims to mutate (controls mutational variance).")
+
+    # map-elite
+
+    ## replays
+    parser.add_argument("--emulator_replay_size", type=int, default=1_000_000,
+                        help="replay size for emulator memory.")
+    parser.add_argument("--emulator_alpha", type=float, default=0.6,
+                        help="alpha for emulator PER.")
+    parser.add_argument("--emulator_beta", type=float, default=1.,
+                        help="beta for emulator PER.")
+    parser.add_argument("--train_2_val_ratio", type=int, default=10,
+                        help="training set to validation set ratio in training emulator.")
+
+    ## preload
+    parser.add_argument("--use_preload", action="store_true", default=False,
+                        help="use preload experience to avoid the long time collecting.")
+
+
+    ####### interval #######
+    parser.add_argument("--log_interval", type=int, default=1,
+                        help="every # of episodes to log.")
+    parser.add_argument("--eval_interval", type=int, default=100,
+                        help="every # of episodes to evaluate.")
 
     ####### evaluation #######
-    # shared
+    ## shared
     parser.add_argument("--num_eval_trials", type=int, default=100,
                         help="# of trials for evaluations.")
 
@@ -135,7 +172,7 @@ def get_config():
     ))
     method = args.method
     if args.scenario == "pattern":
-        assert method in ["naive-kmeans", "mutated-kmeans", "map-elite"]
+        assert method in ["naive-kmeans", "mutation-kmeans", "map-elite"]
 
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")

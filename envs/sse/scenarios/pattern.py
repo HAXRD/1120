@@ -63,7 +63,7 @@ class Scenario(BaseScenario):
         for _gu in world.GUs:
             _gu.pos[:2] = world.gen_1_2D_position(AVOID_COLLISION=True)
             _gu.pos[-1] = world.h_GU
-        print(f'[env | init] initialization done.')
+        # print(f'[env | init] initialization done.')
 
 
     ############## Getters ##############

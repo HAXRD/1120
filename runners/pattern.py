@@ -8,6 +8,7 @@ import random
 import torch
 from pathlib import Path
 from numpy.random import default_rng
+from pprint import pprint
 
 def generate_1_sequence(size, MAX):
     rng = default_rng()
@@ -155,6 +156,11 @@ class Runner(object):
             # TODO: preload replays and seeds
             self.emulator_replay.load_from_npz(self.preload_dir)
             self.emulator_val_replay.load_from_npz(self.preload_dir)
+            info_stamp_fpath = os.path.join(self.preload_dir, "info_stamp.pt")
+            self.info_stamp = torch.load(info_stamp_fpath)
+            pprint(f"[train | preload] preload 'info_stamp' \n{self.info_stamp}")
+        else:
+            self.info_stamp = None
 
     def run(self, test_q):
         """
@@ -173,7 +179,14 @@ class Runner(object):
         self.emulator_load()
 
         """Start algorithm"""
-        for _episode in range(num_env_episodes):
+        if self.info_stamp is not None:
+            start_episode = self.info_stamp["episode"]
+            np.random.set_state(self.info_stamp["np_state"])
+            random.setstate(self.info_stamp["rand_state"])
+        else:
+            start_episode = 0
+
+        for _episode in range(start_episode, num_env_episodes):
 
             start = time.time()
 
@@ -225,6 +238,15 @@ class Runner(object):
                 # save emulator replay
                 self.emulator_replay.save_to_npz(self.file_size_limit, self.preload_dir)
                 self.emulator_val_replay.save_to_npz(self.file_size_limit, self.preload_dir)
+                
+                # save other preload info
+                info_stamp = {
+                    "episode": _episode,
+                    "np_state": np.random.get_state(),
+                    "rand_state": random.getstate()
+                }
+                torch.save(info_stamp, os.path.join(self.preload_dir, "info_stamp.pt"))
+                pprint(f"[train | save preload] saved 'info_stamp', \n{info_stamp}")
 
             # train emulator
             if self.emulator_replay.is_full() and self.emulator_val_replay.is_full():

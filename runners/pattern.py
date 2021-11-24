@@ -148,7 +148,7 @@ class Runner(object):
         self.emulator = Emulator(self.args, self.device)
 
         """Preload replays"""
-        if self.use_preload:
+        if self.use_preload and self.runner_name == "TrainRunner":
             assert os.path.isdir(str(self.preload_dir))
             self.saved_once = True # if do preloading, there is no need to save to files again
 
@@ -186,9 +186,7 @@ class Runner(object):
             P_GU = self.env.get_P_GU()
 
             # plan with different methods
-            if self.method == "naive-kmeans":
-                pass
-            elif self.method == "mutation-kmeans":
+            if self.method == "mutation-kmeans":
                 planning_size, planning_P_ABSs = self.mutation_kmeans(self.num_mutation_seeds, self.num_mutations_per_seed)
             elif self.method == "map-elite":
                 pass
@@ -278,6 +276,39 @@ class Runner(object):
         emulator_state_dict = torch.load(emulator_fpath, map_location=self.device)
         self.emulator.model.load_state_dict(emulator_state_dict)
         print(f"[train | {self.runner_name} | emulator load] loaded emulator from '{emulator_fpath}'.")
+
+
+    def naive_kmeans(self, top_k):
+        """
+        Use naive kmeans with `top_k` different seeds.
+
+        :return: (
+            planning_size,
+            planning_P_ABSs: shape=(planning_size, K, K)
+        )
+        """
+        K = self.K
+
+        planning_P_ABS_idcs = set()
+
+        for _seed in range(top_k):
+            kmeans_P_ABS = self.env.find_KMEANS_P_ABS(_seed)
+            kmeans_P_ABS_idx = tuple(sorted(get_nonzero_indices(kmeans_P_ABS.reshape(-1))))
+            if kmeans_P_ABS_idx not in planning_P_ABS_idcs:
+                planning_P_ABS_idcs.add(kmeans_P_ABS_idx)
+        planning_size = len(planning_P_ABS_idcs)
+        planning_P_ABSs = np.zeros((planning_size, K*K), dtype=np.float32)
+
+        planning_P_ABS_idcs = list(planning_P_ABS_idcs)
+
+        for _idx in range(planning_size):
+            planning_P_ABSs[_idx][list(planning_P_ABS_idcs[_idx])] = 1.
+        planning_P_ABSs = planning_P_ABSs.reshape(planning_size, K, K)
+
+        return (
+            planning_size,
+            planning_P_ABSs
+        )
 
     def mutation_kmeans(self, num_seeds, num_samples_per_seed):
         """

@@ -54,7 +54,7 @@ def pattern_procedure(args, runner, RENDER):
         # plan with different methods
         top_CR_info = ""
         if runner.method == "naive-kmeans":
-            pass
+            planning_size, planning_P_ABSs = runner.naive_kmeans(top_k)
         elif runner.method == "mutation-kmeans":
             planning_size, planning_P_ABSs = runner.mutation_kmeans(num_mutation_seeds, num_mutations_per_seed)
             top_CR_info += "M-K"
@@ -70,7 +70,9 @@ def pattern_procedure(args, runner, RENDER):
             assert repeated_P_GUs.shape == (planning_size, K, K)
 
             # use emulator to select top_k transitions
-            top_k_P_GUs, top_k_P_ABSs, top_k_P_rec_CGUs = runner.plan(repeated_P_GUs, planning_P_ABSs) # (top_k, K, K)
+            _, top_k_P_ABSs, _ = runner.plan(repeated_P_GUs, planning_P_ABSs) # (top_k, K, K)
+        else:
+            top_k_P_ABSs = planning_P_ABSs
 
         # interact with env
         top_k_P_CGUs = np.zeros((top_k, K, K), dtype=np.float32)
@@ -172,6 +174,7 @@ if __name__ == "__main__":
     eval_runner = Runner("EvalRunner", config)
 
     # load ckpt
-    eval_runner.emulator_load(os.path.join(method_dir, "emulator_ckpts", "best_emulator.pt"))
+    if args.method in ["mutation-kmeans", "map-elite"]:
+        eval_runner.emulator_load(os.path.join(method_dir, "emulator_ckpts", "best_emulator.pt"))
 
     best_CRs = eval_procedure(args, eval_runner)

@@ -4,6 +4,7 @@
 import os
 import torch
 import numpy as np
+import random
 import time
 from pathlib import Path
 from tqdm import tqdm
@@ -48,29 +49,49 @@ def collect(args, RENDER="non-display"):
     for _split, _prefix in zip(splits, prefixs):
         idx = 0
         cur_episodes = _split
+
+        if _prefix in ['val', 'test']:
+            n = 2
+        else:
+            n = 4
+
         while cur_episodes > 0:
             episodes = min(cur_episodes, file_episode_limit)
-            P_GUs  = np.zeros((episodes * 2, K, K), dtype=np.float32)
-            P_ABSs = np.zeros((episodes * 2, K, K), dtype=np.float32)
-            P_CGUs = np.zeros((episodes * 2, K, K), dtype=np.float32)
+            P_GUs  = np.zeros((episodes * n, K, K), dtype=np.float32)
+            P_ABSs = np.zeros((episodes * n, K, K), dtype=np.float32)
+            P_CGUs = np.zeros((episodes * n, K, K), dtype=np.float32)
 
             for _episode in tqdm(range(episodes)):
                 # totally random
                 env.reset()
                 env.render(RENDER)
                 P_GU, P_ABS, P_CGU = env.get_all_Ps()
-                P_GUs[2 * _episode] = P_GU
-                P_ABSs[2 * _episode] = P_ABS
-                P_CGUs[2 * _episode] = P_CGU
+                P_GUs[n * _episode] = P_GU
+                P_ABSs[n * _episode] = P_ABS
+                P_CGUs[n * _episode] = P_CGU
+
+                if _prefix == 'train':
+                    abs_id = random.randrange(env.world.n_ABS)
+                    P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                    P_GUs[n * _episode + 2] = P_GU_aug
+                    P_ABSs[n * _episode + 2] = P_ABS_aug
+                    P_CGUs[n * _episode + 2] = P_CGU_aug
 
                 # kmeans
                 kmeans_P_ABS = env.find_KMEANS_P_ABS()
                 env.step(kmeans_P_ABS)
                 env.render(RENDER)
                 P_GU, P_ABS, P_CGU = env.get_all_Ps()
-                P_GUs[2 * _episode + 1] = P_GU
-                P_ABSs[2 * _episode + 1] = P_ABS
-                P_CGUs[2 * _episode + 1] = P_CGU
+                P_GUs[n * _episode + 1] = P_GU
+                P_ABSs[n * _episode + 1] = P_ABS
+                P_CGUs[n * _episode + 1] = P_CGU
+
+                if prefixs == 'train':
+                    abs_id = random.randrange(env.world.n_ABS)
+                    P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                    P_GUs[n * _episode + 3] = P_GU_aug
+                    P_ABSs[n * _episode + 3] = P_ABS_aug
+                    P_CGUs[n * _episode + 3] = P_CGU_aug
 
             for pname, p in zip(["GUs", "ABSs", "CGUs"], [P_GUs, P_ABSs, P_CGUs]):
                 _save(replay_dir, _prefix, pname, idx, p)
@@ -100,7 +121,7 @@ def train_base(args, writer, device):
 
     # replays
     from replays.pattern.emulator import UniformReplay as Replay
-    train_replay = Replay(K, 2 * splits[0])
+    train_replay = Replay(K, 4 * splits[0])
     val_replay = Replay(K, 2 * splits[1])
 
     load_n_copy(train_replay, replay_dir, 'train')
@@ -170,12 +191,9 @@ def test(args, device=torch.device("cpu")):
     base_emulator.model.load_state_dict(base_emulator_state_dict)
 
     bz = 1
-    cnter = 0
+    total = 0
     with torch.no_grad():
         for sample in test_replay.data_loader(bz):
-            if cnter > 10:
-                break
-            cnter += 1
             P_GUs = torch.FloatTensor(sample["P_GUs"]).to(device)
             P_ABSs = torch.FloatTensor(sample["P_ABSs"]).to(device)
             P_CGUs = torch.FloatTensor(sample["P_CGUs"]).to(device)
@@ -183,7 +201,9 @@ def test(args, device=torch.device("cpu")):
             P_rec_CGUs = base_emulator.model.predict(P_GUs, P_ABSs)
 
             # print grid-wise prediction difference
-            pprint(f"{torch.sum(torch.abs(P_rec_CGUs - P_CGUs))}")
+            pred_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
+            total += pred_error
+            pprint(f"{pred_error}")
             # overall CR difference
             CR = torch.sum(P_CGUs) / n_GU
             pCR = torch.sum(P_rec_CGUs) / n_GU
@@ -192,6 +212,7 @@ def test(args, device=torch.device("cpu")):
             pprint(f"{CR} - {pCR} == {CR - pCR}")
 
             print("")
+    print(total / test_replay.size)
 
 if __name__ == "__main__":
 
@@ -210,6 +231,12 @@ if __name__ == "__main__":
     else:
         print("chosse to use cpu...")
         device = torch.device("cpu")
+
+    # seed
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    np.random.seed(args.seed)
+    random.seed(args.seed)
 
     # run dir
     run_dir = args.run_dir

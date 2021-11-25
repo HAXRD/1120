@@ -20,7 +20,10 @@ def SSEEnv(args, is_base, seed=0):
                               get_P_GU_callback=scenario.get_P_GU,
                               get_P_ABS_callback=scenario.get_P_ABS,
                               get_P_CGU_callback=scenario.get_P_CGU,
-                              find_KMEANS_P_ABS_callback=scenario.find_KMEANS_P_ABS)
+                              find_KMEANS_P_ABS_callback=scenario.find_KMEANS_P_ABS,
+                              get_P_GU_with_augmentation_callback=scenario.get_P_GU_with_augmentation,
+                              get_P_ABS_with_augmentation_callback=scenario.get_P_ABS_with_augmentation,
+                              get_P_CGU_with_augmentation_callback=scenario.get_P_CGU_with_augmentation)
     elif args.scenario == "precise":
         env = SiteSpecificEnv(args=args,
                               world=world,

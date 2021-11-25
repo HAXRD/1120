@@ -25,10 +25,15 @@ class SiteSpecificEnv(gym.Env):
                  get_P_ABS_callback=None,
                  get_P_CGU_callback=None,
                  find_KMEANS_P_ABS_callback=None,
+                 get_P_GU_with_augmentation_callback=None,
+                 get_P_ABS_with_augmentation_callback=None,
+                 get_P_CGU_with_augmentation_callback=None,
+                 
                  get_GU_info_callback=None,
                  get_ABS_info_callback=None,
                  get_CGU_info_callback=None,
-                 find_KMEANS_ABS_info_callback=None,):
+                 find_KMEANS_ABS_info_callback=None,
+                 ):
 
         assert isinstance(world, World)
 
@@ -43,6 +48,9 @@ class SiteSpecificEnv(gym.Env):
         self.get_P_ABS_callback = get_P_ABS_callback
         self.get_P_CGU_callback = get_P_CGU_callback
         self.find_KMEANS_P_ABS_callback = find_KMEANS_P_ABS_callback
+        self.get_P_GU_with_augmentation_callback = get_P_GU_with_augmentation_callback
+        self.get_P_ABS_with_augmentation_callback = get_P_ABS_with_augmentation_callback
+        self.get_P_CGU_with_augmentation_callback = get_P_CGU_with_augmentation_callback
 
         self.get_GU_info_callback = get_GU_info_callback
         self.get_ABS_info_callback = get_ABS_info_callback
@@ -200,6 +208,22 @@ class SiteSpecificEnv(gym.Env):
             self.get_P_GU(),
             self.get_P_ABS(),
             self.get_P_CGU()
+        )
+
+    def get_P_GU_with_augmentation(self, abs_id):
+        return self.get_P_GU_with_augmentation_callback(self.world, abs_id, self.args.normalize_pattern)
+
+    def get_P_ABS_with_augmentation(self, abs_id):
+        return self.get_P_ABS_with_augmentation_callback(self.world, abs_id)
+
+    def get_P_CGU_with_augmentation(self, abs_id):
+        return self.get_P_CGU_with_augmentation_callback(self.world, abs_id, self.args.normalize_pattern)
+
+    def get_all_Ps_with_augmentation(self, abs_id):
+        return (
+            self.get_P_GU_with_augmentation(abs_id),
+            self.get_P_ABS_with_augmentation(abs_id),
+            self.get_P_CGU_with_augmentation(abs_id)
         )
 
     ############### utils methods ###############

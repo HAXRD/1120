@@ -127,4 +127,41 @@ class Scenario(BaseScenario):
 
         return P_kmeans_centers
 
+    ############## Getters with augmentation ##############
+    def get_P_GU_with_augmentation(self, world, abs_id, NORMALIZED=False):
+        """Get pattern-style GU info with selected abs_id"""
+        return self.get_P_GU(world, NORMALIZED)
+
+    def get_P_ABS_with_augmentation(self, world, abs_id):
+        """Get pattern-style ABS info with selected abs_id"""
+        assert isinstance(world, World)
+        granularity = world.granularity
+        K = world.K
+
+        P_ABS = np.zeros((K, K), dtype=np.float32)
+        for _abs in world.ABSs:
+            assert isinstance(_abs, ABS)
+            if _abs.id == abs_id:
+                x_idx, y_idx = np.clip(_abs.pos[:2] // granularity, 0, K - 1).astype(np.int32)
+                P_ABS[x_idx, y_idx] += 1.
+                break
+
+        return P_ABS
+
+    def get_P_CGU_with_augmentation(self, world, abs_id, NORMALIZED=False):
+        """Get pattern-style CGU info with selected abs_id"""
+        assert isinstance(world, World)
+        granularity = world.granularity
+        K = world.K
+
+        P_CGU = np.zeros((K, K), dtype=np.float32)
+        for _gu in world.GUs:
+            assert isinstance(_gu, GU)
+            if _gu.ON and abs_id in [item.id for item in _gu.covered_by]:
+                x_idx, y_idx = np.clip(_gu.pos[:2] // granularity, 0, K - 1).astype(np.int32)
+                P_CGU[x_idx, y_idx] += 1.
+
+        P_CGU /= world.n_ON_GU if NORMALIZED else 1.
+        return P_CGU
+
     ############## Setters ##############

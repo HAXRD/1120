@@ -3,7 +3,6 @@
 
 import torch
 
-from algorithms.unets.emulator_net import EmulatorAttentionUNet
 from replays.pattern.emulator import UniformReplay
 
 class Emulator:
@@ -16,12 +15,20 @@ class Emulator:
         self.args = args
         self.lr = args.emulator_lr
         self.K = args.K
+        self.emulator_net_size = args.emulator_net_size
 
         # for SGD
         self.base_emulator_batch_size = args.base_emulator_batch_size
 
         self.device = device
+        if self.emulator_net_size == "small":
+            from algorithms.unets.emulator_net_small import EmulatorAttentionUNet
+        elif self.emulator_net_size == "small_deeper":
+            from algorithms.unets.emulator_net_small_deeper import EmulatorAttentionUNet
+        else:
+            from algorithms.unets.emulator_net import EmulatorAttentionUNet
         self.model = EmulatorAttentionUNet(2, 1).to(device)
+        print(self.model)
         self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def SGD_compute(self, replay, UPDATE=False):

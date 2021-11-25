@@ -6,6 +6,7 @@ import numpy as np
 import csv
 from glob import glob
 from envs.sse.SSE_env import SSEEnv
+from tqdm import tqdm
 
 def make_env(args, TYPE):
     assert TYPE in ["base", "train", "eval"]
@@ -51,7 +52,7 @@ def load_n_copy(replay, replay_dir, prefix):
         for p in ["GUs", "ABSs", "CGUs"]
     ]
 
-    for _GU_fname, _ABS_fname, _CGU_fname in zip(P_GUs_fnames, P_ABSs_fnames, P_CGUs_fnames):
+    for _GU_fname, _ABS_fname, _CGU_fname in tqdm(zip(P_GUs_fnames, P_ABSs_fnames, P_CGUs_fnames)):
         P_GUs, P_ABSs, P_CGUs = [npz_load(fpath) for fpath in [_GU_fname, _ABS_fname, _CGU_fname]]
 
         P_GUs = np.expand_dims(P_GUs, axis=1)

@@ -14,7 +14,7 @@ from config import get_config
 
 from common import make_env, npz_save, load_n_copy
 
-def collect(args, RENDER="non-display"):
+def collect(args, ENV_TYPE="base", RENDER="non-display"):
     """
     Use computer simulation to quickly train a base emulator without
     site-specific information.
@@ -25,7 +25,7 @@ def collect(args, RENDER="non-display"):
     assert RENDER in ["human", "non-display"]
 
     def _save(dir, prefix, pname, idx, arr):
-        fpath = os.path.join(dir, f"{prefix}_{pname}_{idx}.npz")
+        fpath = os.path.join(dir, f"{prefix}_{pname}_s{args.seed}_{idx}.npz")
         npz_save(arr, fpath)
         print(f"[pretrain | collect] saved to '{fpath}' (size: {len(arr)})")
 
@@ -42,7 +42,7 @@ def collect(args, RENDER="non-display"):
         os.makedirs(replay_dir)
 
     # env
-    env = make_env(args, TYPE="base")
+    env = make_env(args, TYPE=ENV_TYPE)
 
     """Collect data"""
     prefixs = ['train', 'val', 'test']
@@ -99,6 +99,8 @@ def collect(args, RENDER="non-display"):
             # update counters
             cur_episodes -= episodes
             idx += 1
+
+    env.close()
 
 def train_base(args, writer, device):
     """
@@ -248,7 +250,7 @@ if __name__ == "__main__":
     # tensorboard
     writer = SummaryWriter(log_dir=os.path.join(run_dir, "pretrain_tb"))
 
-    collect(args, 'human')
+    collect(args, "train", args.render)
 
     train_base(args, writer, device)
 

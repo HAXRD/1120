@@ -16,7 +16,7 @@ from common import make_env, npz_save, load_n_copy
 
 def collect(args, ENV_TYPE="base", RENDER="non-display"):
     """
-    Use computer simulation to quickly train a base emulator without
+    Use computer simulation to quickly train an emulator without
     site-specific information.
 
     :param args  : (namespace), specs;
@@ -37,7 +37,7 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
     file_episode_limit = args.file_episode_limit
 
     # replay saving dir
-    replay_dir = os.path.join(run_dir, "base_emulator_replays")
+    replay_dir = os.path.join(run_dir, "emulator_replays")
     if not os.path.isdir(replay_dir):
         os.makedirs(replay_dir)
 
@@ -102,9 +102,9 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
 
     env.close()
 
-def train_base(args, writer, device):
+def train(args, writer, device):
     """
-    Use collected experience to train a base emulator model;
+    Use collected experience to train an emulator model;
     in the meanwhile, to use validation set to compute validation
     loss as the metric to save the best ckpt.
     """
@@ -116,8 +116,8 @@ def train_base(args, writer, device):
     splits = args.splits
 
     # dirs
-    replay_dir = os.path.join(run_dir, "base_emulator_replays")
-    ckpt_dir = os.path.join(run_dir, "base_emulator_ckpts")
+    replay_dir = os.path.join(run_dir, "emulator_replays")
+    ckpt_dir = os.path.join(run_dir, "emulator_ckpts")
     if not os.path.isdir(ckpt_dir):
         os.makedirs(ckpt_dir)
 
@@ -129,21 +129,21 @@ def train_base(args, writer, device):
     load_n_copy(train_replay, replay_dir, 'train')
     load_n_copy(val_replay, replay_dir, 'val')
 
-    """Train base emulator"""
+    """Train emulator"""
     from algorithms.emulator import Emulator
-    base_emulator = Emulator(args, device)
+    emulator = Emulator(args, device)
     min_val_loss = float('inf')
-    epochs = args.num_base_emulator_epochs
-    best_base_emulator_epoch_counter = 0
+    epochs = args.num_emulator_epochs
+    best_emulator_epoch_counter = 0
 
     for _epoch in range(epochs):
         start = time.time()
         # train
         train_replay.shuffle()
-        train_loss = base_emulator.SGD_compute(train_replay, True)
+        train_loss = emulator.SGD_compute(train_replay, True)
 
         # validate
-        val_loss = base_emulator.SGD_compute(val_replay)
+        val_loss = emulator.SGD_compute(val_replay)
 
         # log info
         print(f"[pretrain | Epoch {_epoch + 1} | {time.time() - start:.2f}s] \t loss: {train_loss} \t val_loss: {val_loss}, \t previous val loss: {min_val_loss}")
@@ -152,16 +152,16 @@ def train_base(args, writer, device):
 
         # update ckpt
         if val_loss < min_val_loss:
-            best_base_emulator_epoch_counter = 0
+            best_emulator_epoch_counter = 0
             min_val_loss = val_loss
-            torch.save(base_emulator.model.state_dict(), os.path.join(ckpt_dir, f"best_base_emulator.pt"))
+            torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, f"best_emulator.pt"))
             print(f"[pretrain] updated best ckpt file.")
         else:
-            best_base_emulator_epoch_counter += 1
+            best_emulator_epoch_counter += 1
             print(f"[pretrain] not updating.")
-            if best_base_emulator_epoch_counter >= args.num_base_emulator_tolerance_epochs:
+            if best_emulator_epoch_counter >= args.num_emulator_tolerance_epochs:
                 break
-        torch.save(base_emulator.model.state_dict(), os.path.join(ckpt_dir, f"base_emulator.pt"))
+        torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, f"emulator.pt"))
 
 
 def test(args, device=torch.device("cpu")):
@@ -177,8 +177,8 @@ def test(args, device=torch.device("cpu")):
     n_GU = args.n_GU
 
     # dirs
-    replay_dir = os.path.join(run_dir, "base_emulator_replays")
-    ckpt_dir = os.path.join(run_dir, "base_emulator_ckpts")
+    replay_dir = os.path.join(run_dir, "emulator_replays")
+    ckpt_dir = os.path.join(run_dir, "emulator_ckpts")
 
     # replays
     from replays.pattern.emulator import UniformReplay as Replay
@@ -188,9 +188,9 @@ def test(args, device=torch.device("cpu")):
 
     """Load emulator"""
     from algorithms.emulator import Emulator
-    base_emulator = Emulator(args, device)
-    base_emulator_state_dict = torch.load(os.path.join(ckpt_dir, f"best_base_emulator.pt"))
-    base_emulator.model.load_state_dict(base_emulator_state_dict)
+    emulator = Emulator(args, device)
+    emulator_state_dict = torch.load(os.path.join(ckpt_dir, f"best_emulator.pt"))
+    emulator.model.load_state_dict(emulator_state_dict)
 
     bz = 1
     total = 0
@@ -200,7 +200,7 @@ def test(args, device=torch.device("cpu")):
             P_ABSs = torch.FloatTensor(sample["P_ABSs"]).to(device)
             P_CGUs = torch.FloatTensor(sample["P_CGUs"]).to(device)
 
-            P_rec_CGUs = base_emulator.model.predict(P_GUs, P_ABSs)
+            P_rec_CGUs = emulator.model.predict(P_GUs, P_ABSs)
 
             # print grid-wise prediction difference
             pred_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
@@ -213,7 +213,6 @@ def test(args, device=torch.device("cpu")):
             pprint('[CGU] - [recons] == [diff]')
             pprint(f"{CR} - {pCR} == {CR - pCR}")
 
-            print("")
     print(total / test_replay.size)
 
 if __name__ == "__main__":
@@ -247,11 +246,17 @@ if __name__ == "__main__":
         os.makedirs(str(run_dir))
     print(f"[pretrain] running dir is '{str(run_dir)}'")
 
+    method_dir = Path(os.path.join(run_dir, args.method))
+    assert isinstance(method_dir, Path)
+    if not method_dir.exists():
+        os.makedirs(str(method_dir))
+    print(f"[pretrain] method_dir is '{str(method_dir)}'.")
+
     # tensorboard
     writer = SummaryWriter(log_dir=os.path.join(run_dir, "pretrain_tb"))
 
     collect(args, "train", args.render)
 
-    train_base(args, writer, device)
+    train(args, writer, device)
 
     test(args, device)

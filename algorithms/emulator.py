@@ -18,7 +18,7 @@ class Emulator:
         self.emulator_net_size = args.emulator_net_size
 
         # for SGD
-        self.base_emulator_batch_size = args.base_emulator_batch_size
+        self.emulator_batch_size = args.emulator_batch_size
 
         self.device = device
         if self.emulator_net_size == "small":
@@ -28,7 +28,6 @@ class Emulator:
         else:
             from algorithms.unets.emulator_net import EmulatorAttentionUNet
         self.model = EmulatorAttentionUNet(2, 1).to(device)
-        print(self.model)
         self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def SGD_compute(self, replay, UPDATE=False):
@@ -37,7 +36,7 @@ class Emulator:
         """
         assert isinstance(replay, UniformReplay)
         total_loss = 0.
-        for sample in replay.data_loader(self.base_emulator_batch_size):
+        for sample in replay.data_loader(self.emulator_batch_size):
             P_GUs  = torch.FloatTensor(sample["P_GUs"]).to(self.device)
             P_ABSs = torch.FloatTensor(sample["P_ABSs"]).to(self.device)
             P_CGUs = torch.FloatTensor(sample["P_CGUs"]).to(self.device)
@@ -54,7 +53,7 @@ class Emulator:
             if UPDATE:
                 self.optim.zero_grad()
                 loss.backward()
-                if self.args.base_emulator_grad_clip_norm:
+                if self.args.emulator_grad_clip_norm:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=0.5)
                 self.optim.step()
             self.model.eval()

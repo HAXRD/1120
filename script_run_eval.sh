@@ -24,7 +24,7 @@ do
     --n_BM ${n_BM} --p_t ${p_t} --p_r ${p_r} \
     --granularity ${granularity} \
     --name_addon ${name_addon} --scenario ${scenario} --method ${method} \
-    --base_BMs_fname ${base_BMs_fname} \
-    --splits 500_000 50_000 500 \
-    --seed ${seed}
+    --splits 300_000 30_000 300 \
+    --seed ${seed} \
+    --num_eval_episodes 100
 done

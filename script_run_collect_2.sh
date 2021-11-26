@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #### hyperparams ###
-CUDA_VISIBLE_DEVICES=1
-seed=2
+CUDA_VISIBLE_DEVICES=2
+seed=1
 ### env params ###
 # shared
 n_BM=50
@@ -15,8 +15,9 @@ granularity=15.625
 ### prepare params ###
 name_addon=run
 scenario=pattern
-method=mutation-kmeans
-base_BMs_fname=terrain-${n_BM}.mat
+method=naive-kmeans
+
+emulator_net_size=small
 
 # pretrain
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
@@ -24,6 +25,5 @@ python pretrain.py \
 --n_BM ${n_BM} --p_t ${p_t} --p_r ${p_r} \
 --granularity ${granularity} \
 --name_addon ${name_addon} --scenario ${scenario} --method ${method} \
---base_BMs_fname ${base_BMs_fname} \
 --splits 100_000 10_000 100 \
 --seed ${seed}

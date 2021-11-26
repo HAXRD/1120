@@ -166,3 +166,8 @@ if __name__ == "__main__":
 
     best_CRs = eval_procedure(args, eval_runner)
 
+    result_fpath = os.path.join(method_dir, "result.csv")
+    result = {
+        "best_CRs": best_CRs
+    }
+    dict2csv(result, result_fpath)

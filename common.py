@@ -24,7 +24,7 @@ def make_env(args, TYPE):
 
 def dict2csv(output_dict, fpath):
     with open(fpath, "w") as f:
-        writer = csv.writer(f, delimeter=',')
+        writer = csv.writer(f, delimiter=',')
         for k, v in output_dict.items():
             v = [k] + v
             writer.writerow(v)

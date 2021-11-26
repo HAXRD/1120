@@ -16,7 +16,6 @@ granularity=15.625
 name_addon=run
 scenario=pattern
 method=mutation-kmeans
-base_BMs_fname=terrain-${n_BM}.mat
 
 # pretrain
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
@@ -24,6 +23,5 @@ python pretrain.py \
 --n_BM ${n_BM} --p_t ${p_t} --p_r ${p_r} \
 --granularity ${granularity} \
 --name_addon ${name_addon} --scenario ${scenario} --method ${method} \
---base_BMs_fname ${base_BMs_fname} \
---splits 500_000 50_000 500 \
+--splits 300_000 30_000 300 \
 --seed ${seed}

@@ -11,16 +11,24 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--n_BM", "50", "--n_GU", "100", "--n_ABS", "5",
-                "--p_t", "0", "--p_r", "-85",
-                "--granularity", "15.625",
+                // "--n_BM", "50", "--n_GU", "100", "--n_ABS", "5",
+                // "--p_t", "0", "--p_r", "-85",
+                // "--granularity", "15.625",
+                // "--scenario", "pattern", "--method", "map-elites",
+                // "--name_addon", "dev",
+                // "--emulator_net_size", "small",
+                // "--emulator_batch_size", "32",
+                // "--num_emulator_epochs", "5",
+                // "--planning_batch_size", "32", "--num_eval_episodes", "20",
+                // "--splits", "50", "50", "5"
+
+                // 'run' debug
+                "--n_BM", "50", "--p_t", "0", "--p_r", "-85",
+                "--granularity", "15.625", "--name_addon", "run",
                 "--scenario", "pattern", "--method", "map-elites",
-                "--name_addon", "dev",
-                "--emulator_net_size", "small",
-                "--emulator_batch_size", "32",
-                "--num_emulator_epochs", "5",
-                "--planning_batch_size", "32", "--num_eval_episodes", "20",
-                "--splits", "50", "50", "5"
+                "--iteration", "512", "--L", "3",
+                "--splits", "300_000", "30_000", "300",
+                "--num_eval_episodes", "10"
             ]
         }
     ]

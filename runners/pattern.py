@@ -309,7 +309,7 @@ class Runner(object):
         if len(candidates) <= n_individuals:
             selected_candidates = candidates
         else:
-            selected_candidates = random.sample(candidates, n_individuals)
+            selected_candidates = random.sample(list(candidates), n_individuals)
 
         individuals = []
         for _candidate in selected_candidates:
@@ -419,8 +419,8 @@ class Runner(object):
             # mutation the individuals
             P_ABSs, CRs = self._mutation(P_GU, individuals) # list of unique P_ABSs
 
-        # place the new individuals in the map of elites
-        self._place_in_mapelites(P_ABSs, CRs)
+            # place the new individuals in the map of elites
+            self._place_in_mapelites(P_ABSs, CRs)
 
         # select top_k best performed P_ABSs
         top_k_P_ABSs = self._get_most_promising_solutions(top_k)

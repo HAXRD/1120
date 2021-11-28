@@ -289,17 +289,11 @@ if __name__ == "__main__":
         os.makedirs(str(run_dir))
     print(f"[pretrain] running dir is '{str(run_dir)}'")
 
-    method_dir = Path(os.path.join(run_dir, args.method))
-    assert isinstance(method_dir, Path)
-    if not method_dir.exists():
-        os.makedirs(str(method_dir))
-    print(f"[pretrain] method_dir is '{str(method_dir)}'.")
-
     # tensorboard
     writer = SummaryWriter(log_dir=os.path.join(run_dir, "pretrain_tb"))
 
     collect(args, "train", args.render)
 
-    train(args, writer, device)
+    # train(args, writer, device)
 
-    test(args, device)
+    # test(args, device)

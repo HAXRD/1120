@@ -63,7 +63,7 @@ def get_config():
     ####### prepare params #######
     parser.add_argument("--scenario", type=str, required=True,
                         help="either 'precise' or 'pattern'.")
-    parser.add_argument("--method", type=str, default="mutation-kmeans",
+    parser.add_argument("--method", type=str, default="",
                         help="among ['', 'naive-kmeans', 'mutation-kmeans', 'map-elites'].")
     parser.add_argument("--seed", type=int, default=2021,
                         help="random seed for numpy&torch")
@@ -112,14 +112,14 @@ def get_config():
                         help="# of outer rims to mutate (controls mutational variance).")
 
     # map-elites
-    parser.add_argument("--iterations", type=int, default=512,
+    parser.add_argument("--iterations", type=int, default=256,
                         help="# of iterations for MAP-elites")
     parser.add_argument("--num_sample_individuals", type=int, default=32,
                         help="# of individuals to sample for each iteration.")
 
     ####### evaluation #######
     ## shared
-    parser.add_argument("--num_eval_episodes", type=int, default=5000,
+    parser.add_argument("--num_eval_episodes", type=int, default=100,
                         help="# of episodes for evaluations.")
 
     # precise

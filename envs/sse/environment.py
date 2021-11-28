@@ -28,11 +28,11 @@ class SiteSpecificEnv(gym.Env):
                  get_P_GU_with_augmentation_callback=None,
                  get_P_ABS_with_augmentation_callback=None,
                  get_P_CGU_with_augmentation_callback=None,
-                 
-                 get_GU_info_callback=None,
-                 get_ABS_info_callback=None,
-                 get_CGU_info_callback=None,
-                 find_KMEANS_ABS_info_callback=None,
+
+                 get_state_callback=None,
+                 get_reward_callback=None,
+                 sample_action_callback=None,
+                 find_KMEANS_ABS_callback=None
                  ):
 
         assert isinstance(world, World)
@@ -52,10 +52,11 @@ class SiteSpecificEnv(gym.Env):
         self.get_P_ABS_with_augmentation_callback = get_P_ABS_with_augmentation_callback
         self.get_P_CGU_with_augmentation_callback = get_P_CGU_with_augmentation_callback
 
-        self.get_GU_info_callback = get_GU_info_callback
-        self.get_ABS_info_callback = get_ABS_info_callback
-        self.get_CGU_info_callback = get_CGU_info_callback
-        self.find_KMEANS_ABS_info_callback = find_KMEANS_ABS_info_callback
+        self.get_state_callback = get_state_callback
+        self.get_reward_callback = get_reward_callback
+        self.sample_action_callback = sample_action_callback
+        self.find_KMEANS_ABS_callback = find_KMEANS_ABS_callback
+
 
         # rendering
         self.cam_range = 1.2 * self.world.world_len
@@ -194,6 +195,8 @@ class SiteSpecificEnv(gym.Env):
         self.render_geoms_xform = None
 
     ############### getters ###############
+
+    ### pattern only ###
     def get_P_GU(self):
         return self.get_P_GU_callback(self.world, self.args.normalize_pattern)
 
@@ -226,6 +229,20 @@ class SiteSpecificEnv(gym.Env):
             self.get_P_CGU_with_augmentation(abs_id)
         )
 
+    ### precise only ###
+    def get_state(self):
+        return self.get_state_callback()
+
+    def get_reward(self):
+        return self.get_reward_callback()
+
+    def sample_action(self):
+        return self.sample_action_callback()
+
+
     ############### utils methods ###############
     def find_KMEANS_P_ABS(self, seed=0):
         return self.find_KMEANS_P_ABS_callback(self.world, seed)
+
+    def find_KMEANS_ABS(self, seed=0):
+        return self.find_KMEANS_ABS_callback(self.world, seed)

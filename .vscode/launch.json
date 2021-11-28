@@ -23,12 +23,19 @@
                 // "--splits", "50", "50", "5"
 
                 // 'run' debug
-                "--n_BM", "50", "--p_t", "0", "--p_r", "-85",
-                "--granularity", "15.625", "--name_addon", "run",
-                "--scenario", "pattern", "--method", "map-elites",
-                "--iteration", "512", "--L", "3",
-                "--splits", "300_000", "30_000", "300",
-                "--num_eval_episodes", "10"
+                // "--n_BM", "50", "--p_t", "0", "--p_r", "-85",
+                // "--granularity", "15.625", "--name_addon", "run",
+                // "--scenario", "pattern", "--method", "map-elites",
+                // "--iteration", "512", "--L", "3",
+                // "--splits", "300_000", "30_000", "300",
+                // "--num_eval_episodes", "10"
+
+                // 'test_env.py'
+                "--n_BM", "0", "--n_GU", "10", "--n_ABS", "2",
+                "--scenario", "pattern",
+                "--random_on_off",
+                "--p_on", "0.8"
+
             ]
         }
     ]

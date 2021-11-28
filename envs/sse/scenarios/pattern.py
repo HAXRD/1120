@@ -2,6 +2,7 @@
 # All rights reserved.
 
 import numpy as np
+import random
 from envs.sse.core import World, GU, ABS, BM
 from envs.sse.scenario import BaseScenario
 
@@ -63,7 +64,17 @@ class Scenario(BaseScenario):
         for _gu in world.GUs:
             _gu.pos[:2] = world.gen_1_2D_position(AVOID_COLLISION=True)
             _gu.pos[-1] = world.h_GU
+
+            if world.random_on_off:
+                if random.random() < world.p_on:
+                    _gu.ON = True
+                else:
+                    _gu.ON = False
         # print(f'[env | init] initialization done.')
+
+        #### reset CRs to 0.s ####
+        world.CR_old = 0.
+        world.CR_new = 0.
 
 
     ############## Getters ##############

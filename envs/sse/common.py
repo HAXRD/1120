@@ -21,9 +21,7 @@ DIRECTIONs_3D = [
     np.array([0, 1, 0], dtype=np.float32),
     np.array([1, 0, 0], dtype=np.float32),
     np.array([0, -1, 0], dtype=np.float32),
-    np.array([-1, 0, 0], dtype=np.float32),
-    np.array([0, 0, 1], dtype=np.float32),
-    np.array([0, 0, -1], dtype=np.float32)
+    np.array([-1, 0, 0], dtype=np.float32)
 ]
 
 @jit(nopython=True)

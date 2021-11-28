@@ -5,10 +5,12 @@
 import os
 import scipy.io as sio
 import numpy as np
+import random
+from gym.spaces import Discrete
 from collections import namedtuple
 from sklearn.cluster import KMeans
 
-from envs.sse.common import compute_2D_distance, compute_R_2D_LoS, compute_R_2D_NLoS
+from envs.sse.common import compute_2D_distance, compute_R_2D_LoS, compute_R_2D_NLoS, DIRECTIONs_3D
 
 COLORs = {
     'grey'  : np.array([0.5, 0.5, 0.5]), # 'off' GU
@@ -125,6 +127,10 @@ class World(object):
         self.random_on_off = False
         self.p_on = 1.
 
+        # Coverage rates (CR)
+        self.CR_new = 0.
+        self.CR_old = 0.
+
         # ABSs
         self.ABSs = []
         self.n_ABS = 0
@@ -134,6 +140,10 @@ class World(object):
         # 'pattern'-style only params
         self.granularity = None
         self.K = None
+
+        # 'precise'-style only params
+        self.action_space = Discrete(len(DIRECTIONs_3D))
+
 
     ############### public methods ###############
     def gen_1_2D_position(self, AVOID_COLLISION=True):
@@ -165,6 +175,13 @@ class World(object):
             if self.grids[next_x_idx, next_y_idx] == 0.:
                 _gu.pos = next_pos
 
+            # randomly turn on/off
+            if self.random_on_off:
+                if random.random() < self.p_on:
+                    _gu.ON = True
+                else:
+                    _gu.ON = False
+
         # update covered state
         self.update()
 
@@ -193,6 +210,7 @@ class World(object):
             assert isinstance(_abs, ABS)
             _abs.recomputed = False
 
+        #### update all GUs' covered_by lists ####
         for _gu in self.GUs:
             assert isinstance(_gu, GU)
             # empty out covered_by list
@@ -224,11 +242,15 @@ class World(object):
                 _gu.color = COLORs['green']
 
         # print(f"[env | update] updated GUs' `covered_by` list.")
+        
+        #### update CRs ####
+        self.CR_old = self.CR_new
+        self.CR_new = self.n_covered_ON_GU / self.n_ON_GU
 
     def compute_KMEANS_centers(self, gus, seed=0):
         """compute KMEANS centers w/ given GUs."""
-        locs_2D_gus = np.stack([gu.pos[:2] for gu in gus], axis=0)
-        assert locs_2D_gus.shape == (self.n_GU, 2)
+        locs_2D_gus = np.stack([gu.pos[:2] for gu in gus if gu.ON], axis=0)
+        assert locs_2D_gus.shape == (self.n_ON_GU, 2)
         kmeans = KMeans(n_clusters=self.n_ABS, random_state=seed).fit(locs_2D_gus)
         centers = kmeans.cluster_centers_.astype(np.float32)
         assert centers.shape == (self.n_ABS, 2)
@@ -379,5 +401,13 @@ class World(object):
         n = 0
         for _gu in self.GUs:
             if _gu.ON:
+                n += 1
+        return n
+
+    @property
+    def n_covered_ON_GU(self):
+        n = 0
+        for _gu in self.GUs:
+            if _gu.ON and len(_gu.covered_by) > 0:
                 n += 1
         return n

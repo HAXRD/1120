@@ -121,8 +121,8 @@ def _get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
         GUs_fpaths  = [GUs_fpaths[i]  for i in perm]
         ABSs_fpaths = [ABSs_fpaths[i] for i in perm]
         CGUs_fpaths = [CGUs_fpaths[i] for i in perm]
-        print(f"[pretrain] replay fpaths shuffled!")
-
+        print(f"[pretrain | {prefix}] replay fpaths shuffled!")
+    print(f"[pretrain | {prefix}] get all {prefix} file paths.")
     return (
         GUs_fpaths, ABSs_fpaths, CGUs_fpaths
     )
@@ -137,8 +137,6 @@ def train(args, writer, device):
     """Preparation"""
     # useful params
     run_dir = args.run_dir
-    K = args.K
-    splits = args.splits
 
     # dirs
     replay_dir = os.path.join(run_dir, "emulator_replays")
@@ -167,7 +165,7 @@ def train(args, writer, device):
         # train
         total_train_loss = 0.
         total_train_size = 0
-        for _fpaths in zip(*train_list_of_fpaths):
+        for _fpaths in tqdm(zip(*train_list_of_fpaths), desc="train"):
             train_replay = Replay(_fpaths)
 
             train_loss = emulator.SGD_compute(train_replay, True)
@@ -179,7 +177,7 @@ def train(args, writer, device):
         # validate
         total_val_loss = 0.
         total_val_size = 0
-        for _fpaths in zip(*val_list_of_fpaths):
+        for _fpaths in tqdm(zip(*val_list_of_fpaths), desc="val"):
             val_replay = Replay(_fpaths)
 
             val_loss = emulator.SGD_compute(val_replay, False)
@@ -215,7 +213,6 @@ def test(args, device=torch.device("cpu")):
     # useful params
     run_dir = args.run_dir
     K = args.K
-    splits = args.splits
 
     # dirs
     replay_dir = os.path.join(run_dir, "emulator_replays")
@@ -301,7 +298,7 @@ if __name__ == "__main__":
     # tensorboard
     writer = SummaryWriter(log_dir=os.path.join(run_dir, "pretrain_tb"))
 
-    # collect(args, "train", args.render)
+    collect(args, "train", args.render)
 
     train(args, writer, device)
 

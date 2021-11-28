@@ -23,7 +23,7 @@ def get_config():
                         help="# of steps to explore for each episode.")
     parser.add_argument("--n_step_serve", type=int, default=64,
                         help="# of steps to serve for each episode.")
-    parser.add_argument("--n_BM", type=int, required=True,
+    parser.add_argument("--n_BM", type=int, default=50,
                         help="# of BMs for Site-specific environment.")
     parser.add_argument("--n_ABS", type=int, default=5,
                         help="# of ABSs.")
@@ -46,9 +46,9 @@ def get_config():
 
     parser.add_argument("--f_c", type=float, default=2.,
                         help="carrier frequency (GHz).")
-    parser.add_argument("--p_t", type=float, required=True,
+    parser.add_argument("--p_t", type=float, default=0.,
                         help="maximum transmit power.")
-    parser.add_argument("--p_r", type=float, default=-100.,
+    parser.add_argument("--p_r", type=float, default=-87,
                         help="minimum receive power.")
 
     # precise only

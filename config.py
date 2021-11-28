@@ -23,7 +23,7 @@ def get_config():
                         help="# of steps to explore for each episode.")
     parser.add_argument("--n_step_serve", type=int, default=64,
                         help="# of steps to serve for each episode.")
-    parser.add_argument("--n_BM", type=int, default=50,
+    parser.add_argument("--n_BM", type=int, default=150,
                         help="# of BMs for Site-specific environment.")
     parser.add_argument("--n_ABS", type=int, default=5,
                         help="# of ABSs.")
@@ -143,7 +143,7 @@ def get_config():
     ))
     method = args.method
     if args.scenario == "pattern":
-        assert method in ["naive-kmeans", "mutation-kmeans", "map-elites"]
+        assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
 
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")

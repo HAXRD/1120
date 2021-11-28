@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #### hyperparams ###
-CUDA_VISIBLE_DEVICES=2
-seed=1
+CUDA_VISIBLE_DEVICES=1
+seed=2
 ### env params ###
 # shared
 n_BM=50

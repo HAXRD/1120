@@ -2,7 +2,6 @@
 # All rights reserved.
 
 import torch
-from torch.utils.data import DataLoader
 
 from replays.pattern.emulator import UniformReplay
 
@@ -20,7 +19,6 @@ class Emulator:
 
         # for SGD
         self.emulator_batch_size = args.emulator_batch_size
-        self.emulator_grad_clip_norm = args.emulator_grad_clip_norm
 
         self.device = device
         if self.emulator_net_size == "small":
@@ -34,21 +32,15 @@ class Emulator:
 
     def SGD_compute(self, replay, UPDATE=False):
         """
-        :param UPDATE: update parameters if True;
+        :param UPDATE: update parameters if True
         """
         assert isinstance(replay, UniformReplay)
-        
-        # prepare DataLoader
-        pin_memory = not (self.device == torch.device("cpu"))
-        dataloader = DataLoader(replay, batch_size=self.emulator_batch_size, shuffle=UPDATE, pin_memory=pin_memory)
-
         total_loss = 0.
-        for P_GUs, P_ABSs, P_CGUs in dataloader:
+        for sample in replay.data_loader(self.emulator_batch_size):
+            P_GUs  = torch.FloatTensor(sample["P_GUs"]).to(self.device)
+            P_ABSs = torch.FloatTensor(sample["P_ABSs"]).to(self.device)
+            P_CGUs = torch.FloatTensor(sample["P_CGUs"]).to(self.device)
             bz = P_GUs.size()[0]
-
-            P_GUs  = P_GUs.to(self.device)
-            P_ABSs = P_ABSs.to(self.device)
-            P_CGUs = P_CGUs.to(self.device)
 
             if UPDATE:
                 self.model.train()
@@ -61,11 +53,14 @@ class Emulator:
             if UPDATE:
                 self.optim.zero_grad()
                 loss.backward()
-                if self.emulator_grad_clip_norm:
+                if self.args.emulator_grad_clip_norm:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=0.5)
                 self.optim.step()
             self.model.eval()
 
             total_loss += loss.item() * bz
-
+        total_loss /= replay.size
         return total_loss
+
+
+

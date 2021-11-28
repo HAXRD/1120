@@ -9,22 +9,18 @@ import time
 from pathlib import Path
 from tqdm import tqdm
 from pprint import pprint
-from glob import glob
-import logging
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader
-
 from config import get_config
-from common import make_env, npz_save
-from replays.pattern.emulator import UniformReplay as Replay
+
+from common import make_env, npz_save, load_n_copy
 
 def collect(args, ENV_TYPE="base", RENDER="non-display"):
     """
-    Collect samples by interacting with site-specific environment,
-    then save them as npz files.
+    Use computer simulation to quickly train an emulator without
+    site-specific information.
 
     :param args  : (namespace), specs;
-    :param RENDER: (str), either 'human' or 'non-display';
+    :param RENDER: (str), whether to render;
     """
     assert RENDER in ["human", "non-display"]
 
@@ -106,27 +102,6 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
 
     env.close()
 
-def _get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
-
-    GUs_fpaths, ABSs_fpaths, CGUs_fpaths  = [
-        sorted(glob(os.path.join(replay_dir, f"{prefix}_{pname}_*.npz")))
-        for pname in ["GUs", "ABSs", "CGUs"]
-    ]
-
-    if SHUFFLE_FILE_ORDER:
-        n_files = len(GUs_fpaths)
-        perm = np.arange(n_files)
-        np.random.shuffle(perm)
-
-        GUs_fpaths  = [GUs_fpaths[i]  for i in perm]
-        ABSs_fpaths = [ABSs_fpaths[i] for i in perm]
-        CGUs_fpaths = [CGUs_fpaths[i] for i in perm]
-        print(f"[pretrain] replay fpaths shuffled!")
-
-    return (
-        GUs_fpaths, ABSs_fpaths, CGUs_fpaths
-    )
-
 def train(args, writer, device):
     """
     Use collected experience to train an emulator model;
@@ -146,6 +121,13 @@ def train(args, writer, device):
     if not os.path.isdir(ckpt_dir):
         os.makedirs(ckpt_dir)
 
+    # replays
+    from replays.pattern.emulator import UniformReplay as Replay
+    train_replay = Replay(K, 4 * splits[0])
+    val_replay = Replay(K, 2 * splits[1])
+
+    load_n_copy(train_replay, replay_dir, 'train')
+    load_n_copy(val_replay, replay_dir, 'val')
 
     """Train emulator"""
     from algorithms.emulator import Emulator
@@ -154,61 +136,37 @@ def train(args, writer, device):
     epochs = args.num_emulator_epochs
     best_emulator_epoch_counter = 0
 
-    # get val paths since it does not need to be shuffled every epoch
-    val_list_of_fpaths = _get_replay_fpaths(replay_dir, "val")
-
     for _epoch in range(epochs):
-
-        # get train paths with file order shuffled
-        train_list_of_fpaths = _get_replay_fpaths(replay_dir, "train", SHUFFLE_FILE_ORDER=True)
-
         start = time.time()
-
         # train
-        total_train_loss = 0.
-        total_train_size = 0
-        for _fpaths in zip(*train_list_of_fpaths):
-            train_replay = Replay(_fpaths)
-
-            train_loss = emulator.SGD_compute(train_replay, True)
-
-            total_train_loss += train_loss
-            total_train_size += len(train_replay)
-        mean_train_loss = total_train_loss / total_train_size
+        train_replay.shuffle()
+        train_loss = emulator.SGD_compute(train_replay, True)
 
         # validate
-        total_val_loss = 0.
-        total_val_size = 0
-        for _fpaths in zip(*val_list_of_fpaths):
-            val_replay = Replay(_fpaths)
-
-            val_loss = emulator.SGD_compute(val_replay, False)
-
-            total_val_loss += val_loss
-            total_val_size += len(val_replay)
-        mean_val_loss = total_val_loss / total_val_size
+        val_loss = emulator.SGD_compute(val_replay)
 
         # log info
-        print(f"[pretrain | Epoch {_epoch + 1} | {time.time() - start:.2f}s] \t loss: {mean_train_loss} \t val_loss: {mean_val_loss}, \t previous val loss: {min_val_loss}")
-        writer.add_scalar("train_loss", mean_train_loss, _epoch)
-        writer.add_scalar("val_loss", mean_val_loss, _epoch)
+        print(f"[pretrain | Epoch {_epoch + 1} | {time.time() - start:.2f}s] \t loss: {train_loss} \t val_loss: {val_loss}, \t previous val loss: {min_val_loss}")
+        writer.add_scalar("train_loss", train_loss, _epoch)
+        writer.add_scalar("val_loss", val_loss, _epoch)
 
         # update ckpt
-        if mean_val_loss < min_val_loss:
+        if val_loss < min_val_loss:
             best_emulator_epoch_counter = 0
-            min_val_loss = mean_val_loss
-            torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, "best_emulator.pt"))
+            min_val_loss = val_loss
+            torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, f"best_emulator.pt"))
             print(f"[pretrain] updated best ckpt file.")
         else:
             best_emulator_epoch_counter += 1
-            print(f"[pretrain] not updating, {args.num_emulator_tolerance_epochs - best_emulator_epoch_counter}")
+            print(f"[pretrain] not updating.")
             if best_emulator_epoch_counter >= args.num_emulator_tolerance_epochs:
                 break
-        torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, f"emulator-{_epoch}.pt"))
+        torch.save(emulator.model.state_dict(), os.path.join(ckpt_dir, f"emulator.pt"))
+
 
 def test(args, device=torch.device("cpu")):
     """
-    Use test set to manual check accuracy.
+    Use test set to manual check accuracy
     """
 
     """Preparation"""
@@ -216,50 +174,46 @@ def test(args, device=torch.device("cpu")):
     run_dir = args.run_dir
     K = args.K
     splits = args.splits
+    n_GU = args.n_GU
 
     # dirs
     replay_dir = os.path.join(run_dir, "emulator_replays")
     ckpt_dir = os.path.join(run_dir, "emulator_ckpts")
 
     # replays
-    test_list_of_fpaths = _get_replay_fpaths(replay_dir, "test")
+    from replays.pattern.emulator import UniformReplay as Replay
+    test_replay = Replay(K, 2 * splits[2])
 
+    load_n_copy(test_replay, replay_dir, 'test')
 
     """Load emulator"""
     from algorithms.emulator import Emulator
     emulator = Emulator(args, device)
-    emulator_state_dict = torch.load(os.path.join(ckpt_dir, "best_emulator.pt"))
+    emulator_state_dict = torch.load(os.path.join(ckpt_dir, f"best_emulator.pt"))
     emulator.model.load_state_dict(emulator_state_dict)
 
     bz = 1
     total = 0
-    total_test_size = 0
-    pin_memory = not (device == torch.device("cpu"))
-    for _fpaths in zip(*test_list_of_fpaths):
-        test_replay = Replay(_fpaths)
-
-        dataloader = DataLoader(test_replay, batch_size=1, pin_memory=pin_memory)
-        total_test_size += len(test_replay)
-
-        for P_GUs, P_ABSs, P_CGUs in dataloader:
-
-            P_GUs  = P_GUs.to(device)
-            P_ABSs = P_ABSs.to(device)
-            P_CGUs = P_CGUs.to(device)
+    with torch.no_grad():
+        for sample in test_replay.data_loader(bz):
+            P_GUs = torch.FloatTensor(sample["P_GUs"]).to(device)
+            P_ABSs = torch.FloatTensor(sample["P_ABSs"]).to(device)
+            P_CGUs = torch.FloatTensor(sample["P_CGUs"]).to(device)
 
             P_rec_CGUs = emulator.model.predict(P_GUs, P_ABSs)
 
+            # print grid-wise prediction difference
             pred_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
             total += pred_error
             pprint(f"{pred_error}")
+            # overall CR difference
+            CR = torch.sum(P_CGUs) / n_GU
+            pCR = torch.sum(P_rec_CGUs) / n_GU
 
-            CR = torch.sum(P_CGUs) / torch.sum(P_GUs)
-            pCR = torch.sum(P_rec_CGUs) / torch.sum(P_GUs)
+            pprint('[CGU] - [recons] == [diff]')
+            pprint(f"{CR} - {pCR} == {CR - pCR}")
 
-            print(f"{CR} - {pCR} == {CR - pCR}")
-
-    print(total / total_test_size)
-
+    print(total / test_replay.size)
 
 if __name__ == "__main__":
 
@@ -301,7 +255,7 @@ if __name__ == "__main__":
     # tensorboard
     writer = SummaryWriter(log_dir=os.path.join(run_dir, "pretrain_tb"))
 
-    # collect(args, "train", args.render)
+    collect(args, "train", args.render)
 
     train(args, writer, device)
 

@@ -20,10 +20,13 @@ def gen_BMs(world_len, mesh_len, n_BM, save_dir, seed=2021):
     M = int(world_len / mesh_len)
     assert M*M - n_BM >= 0
 
-
-    raw_grids = np.ones(M*M, dtype=np.float32) * 90
+    if args.random_h:
+        raw_grids = np.random.randint(args.h_min, args.h_max, size=M*M).astype(np.float32)
+    else:
+        raw_grids = np.ones(M*M, dtype=np.float32) * 90
     zero_idcs = sorted(random.sample(range(0, M*M), M*M - n_BM))
     raw_grids[zero_idcs] = 0.
+
     grids = raw_grids.reshape((M, M)).astype(np.float32)
 
     mat = {
@@ -44,7 +47,13 @@ if __name__ == '__main__':
     parser.add_argument('--n_BM', type=int, default=50)
     parser.add_argument('--save_dir', type=str, default='./')
     parser.add_argument('--seed', type=int, default=2021)
+    parser.add_argument('--random_h', action='store_true', default=False,
+                        help="by default false, using same height.")
+    parser.add_argument('--h_min', type=int, default=30)
+    parser.add_argument('--h_max', type=int, default=90)
     args = parser.parse_args()
+
+    assert args.h_min <= args.h_max
 
     mat, save_path = gen_BMs(args.world_len, args.mesh_len, args.n_BM, args.save_dir, args.seed)
     pprint(mat)

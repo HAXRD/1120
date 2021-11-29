@@ -21,7 +21,8 @@
                 "--emulator_batch_size", "32",
                 "--num_emulator_epochs", "5",
                 "--planning_batch_size", "32", "--num_eval_episodes", "20",
-                "--splits", "10", "10", "5"
+                "--splits", "2", "2", "2",
+                "--collect_strategy", "subset"
 
                 // 'run' debug
                 // "--n_BM", "50", "--p_t", "0", "--p_r", "-85",

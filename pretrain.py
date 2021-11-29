@@ -37,8 +37,10 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
     # useful params
     run_dir = args.run_dir
     K = args.K
+    n_ABS = args.n_ABS
     splits = args.splits
     file_episode_limit = args.file_episode_limit
+    collect_strategy = args.collect_strategy
 
     # replay saving dir
     replay_dir = os.path.join(run_dir, "emulator_replays")
@@ -57,7 +59,10 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
         if _prefix in ['val', 'test']:
             n = 2
         else:
-            n = 4
+            if collect_strategy == "default":
+                n = 4
+            elif collect_strategy == "subset":
+                n = n_ABS * 2
 
         while cur_episodes > 0:
             episodes = min(cur_episodes, file_episode_limit)
@@ -66,36 +71,64 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
             P_CGUs = np.zeros((episodes * n, K, K), dtype=np.float32)
 
             for _episode in tqdm(range(episodes)):
-                # totally random
-                env.reset()
-                env.render(RENDER)
-                P_GU, P_ABS, P_CGU = env.get_all_Ps()
-                P_GUs[n * _episode] = P_GU
-                P_ABSs[n * _episode] = P_ABS
-                P_CGUs[n * _episode] = P_CGU
+                
+                if _prefix == "train" and collect_strategy == "subset":
+                    # totally random
+                    env.reset()
+                    env.render(RENDER)
 
-                if _prefix == 'train':
-                    abs_id = random.randrange(env.world.n_ABS)
-                    P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
-                    P_GUs[n * _episode + 2] = P_GU_aug
-                    P_ABSs[n * _episode + 2] = P_ABS_aug
-                    P_CGUs[n * _episode + 2] = P_CGU_aug
+                    for _abs_id in range(n_ABS):
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(_abs_id)
+                        P_GUs[n * _episode + _abs_id] = P_GU_aug
+                        P_ABSs[n * _episode + _abs_id] = P_ABS_aug
+                        P_CGUs[n * _episode + _abs_id] = P_CGU_aug
 
-                # kmeans
-                kmeans_P_ABS = env.find_KMEANS_P_ABS()
-                env.step(kmeans_P_ABS)
-                env.render(RENDER)
-                P_GU, P_ABS, P_CGU = env.get_all_Ps()
-                P_GUs[n * _episode + 1] = P_GU
-                P_ABSs[n * _episode + 1] = P_ABS
-                P_CGUs[n * _episode + 1] = P_CGU
+                    # kmeans
+                    kmeans_P_ABS = env.find_KMEANS_P_ABS()
+                    env.step(kmeans_P_ABS)
+                    env.render(RENDER)
 
-                if prefixs == 'train':
-                    abs_id = random.randrange(env.world.n_ABS)
-                    P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
-                    P_GUs[n * _episode + 3] = P_GU_aug
-                    P_ABSs[n * _episode + 3] = P_ABS_aug
-                    P_CGUs[n * _episode + 3] = P_CGU_aug
+                    for _abs_id in range(n_ABS):
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(_abs_id)
+                        P_GUs[n * _episode + _abs_id + n_ABS] = P_GU_aug
+                        P_ABSs[n * _episode + _abs_id + n_ABS] = P_ABS_aug
+                        P_CGUs[n * _episode + _abs_id + n_ABS] = P_CGU_aug
+
+                    pass
+                elif (_prefix == "train" and collect_strategy == "default") \
+                    or _prefix in ["val", "test"]:
+                    # totally random
+                    env.reset()
+                    env.render(RENDER)
+
+                    P_GU, P_ABS, P_CGU = env.get_all_Ps()
+                    P_GUs[n * _episode] = P_GU
+                    P_ABSs[n * _episode] = P_ABS
+                    P_CGUs[n * _episode] = P_CGU
+
+                    if _prefix == "train":
+                        abs_id = random.randrange(env.world.n_ABS)
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                        P_GUs[n * _episode + 2] = P_GU_aug
+                        P_ABSs[n * _episode + 2] = P_ABS_aug
+                        P_CGUs[n * _episode + 2] = P_CGU_aug
+
+                    # kmeans
+                    kmeans_P_ABS = env.find_KMEANS_P_ABS()
+                    env.step(kmeans_P_ABS)
+                    env.render(RENDER)
+
+                    P_GU, P_ABS, P_CGU = env.get_all_Ps()
+                    P_GUs[n * _episode + 1] = P_GU
+                    P_ABSs[n * _episode + 1] = P_ABS
+                    P_CGUs[n * _episode + 1] = P_CGU
+
+                    if _prefix == 'train':
+                        abs_id = random.randrange(env.world.n_ABS)
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                        P_GUs[n * _episode + 3] = P_GU_aug
+                        P_ABSs[n * _episode + 3] = P_ABS_aug
+                        P_CGUs[n * _episode + 3] = P_CGU_aug
 
             for pname, p in zip(["GUs", "ABSs", "CGUs"], [P_GUs, P_ABSs, P_CGUs]):
                 _save(replay_dir, _prefix, pname, idx, p)
@@ -294,6 +327,6 @@ if __name__ == "__main__":
 
     collect(args, "train", args.render)
 
-    # train(args, writer, device)
+    train(args, writer, device)
 
-    # test(args, device)
+    test(args, device)

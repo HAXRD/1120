@@ -1,7 +1,7 @@
 #!/bin/bash
 # TODO: go to pretrain to comment out train and test
+# TODO: go to config to change collect_strategy
 #### hyperparams ###
-CUDA_VISIBLE_DEVICES=1          # TODO: change CUDA for different server
 seed=0                          # TODO: change seed for each collect
 ### env params ###
 
@@ -21,5 +21,5 @@ CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
 python pretrain.py \
 --granularity ${granularity} \
 --name_addon ${name_addon} --scenario ${scenario} \
---splits 100_000 10_000 100 \
+--splits 40_000 10_000 100 \
 --seed ${seed}

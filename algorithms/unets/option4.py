@@ -18,31 +18,33 @@ class EmulatorAttentionUNet(nn.Module):
     def __init__(self, ch_in=2, ch_out=1):
         super(EmulatorAttentionUNet, self).__init__()
 
+        ch1, ch2, ch3, ch4, ch5 = 32, 64, 64, 64, 64
+
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
         self.sigmoid = nn.Sigmoid()
-        self.conv1 = ConvBlock(ch_in, 64)
-        self.conv2 = ConvBlock(64, 128)
-        self.conv3 = ConvBlock(128, 256)
-        self.conv4 = ConvBlock(256, 256)
-        # self.conv5 = ConvBlock(512, 1024)
+        self.conv1 = ConvBlock(ch_in, ch1)
+        self.conv2 = ConvBlock(ch1, ch2)
+        self.conv3 = ConvBlock(ch2, ch3)
+        self.conv4 = ConvBlock(ch3, ch4)
+        # self.conv5 = ConvBlock(ch4, ch5)
 
-        # self.up5 = UpConv(1024, 512)
-        # self.att5 = AttentionBlock(512, 512, 256)
-        # self.up_conv5 = ConvBlock(1024, 512)
+        # self.up5 = UpConv(ch5, ch4)
+        # self.att5 = AttentionBlock(ch4, ch4, ch4//2)
+        # self.up_conv5 = ConvBlock(2*ch4, ch4)
 
-        self.up4 = UpConv(256, 256)
-        self.att4 = AttentionBlock(256, 256, 128)
-        self.up_conv4 = ConvBlock(256, 256)
+        self.up4 = UpConv(ch4, ch3)
+        self.att4 = AttentionBlock(ch3, ch3, ch3//2)
+        self.up_conv4 = ConvBlock(2*ch3, ch3)
 
-        self.up3 = UpConv(256, 128)
-        self.att3 = AttentionBlock(128, 128, 64)
-        self.up_conv3 = ConvBlock(256, 128)
+        self.up3 = UpConv(ch3, ch2)
+        self.att3 = AttentionBlock(ch2, ch2, ch2//2)
+        self.up_conv3 = ConvBlock(2*ch2, ch2)
 
-        self.up2 = UpConv(128, 64)
-        self.att2 = AttentionBlock(64, 64, 32)
-        self.up_conv2 = ConvBlock(128, 64)
+        self.up2 = UpConv(ch2, ch1)
+        self.att2 = AttentionBlock(ch1, ch1, ch1//2)
+        self.up_conv2 = ConvBlock(2*ch1, ch1)
 
-        self.conv_1x1 = nn.Conv2d(64, ch_out, kernel_size=1, stride=1, padding=0)
+        self.conv_1x1 = nn.Conv2d(ch1, ch_out, kernel_size=1, stride=1, padding=0)
 
     def forward(self, P_GUs, P_ABSs):
         """

@@ -23,12 +23,18 @@ class Emulator:
         self.emulator_grad_clip_norm = args.emulator_grad_clip_norm
 
         self.device = device
-        if self.emulator_net_size == "small":
-            from algorithms.unets.emulator_net_small import EmulatorAttentionUNet
-        elif self.emulator_net_size == "small_deeper":
-            from algorithms.unets.emulator_net_small_deeper import EmulatorAttentionUNet
-        else:
-            from algorithms.unets.emulator_net import EmulatorAttentionUNet
+        if self.emulator_net_size == "option1":
+            from algorithms.unets.option1 import EmulatorAttentionUNet
+        elif self.emulator_net_size == "option2":
+            from algorithms.unets.option2 import EmulatorAttentionUNet
+        elif self.emulator_net_size == "option3":
+            from algorithms.unets.option3 import EmulatorAttentionUNet
+        elif self.emulator_net_size == "option4":
+            from algorithms.unets.option4 import EmulatorAttentionUNet
+        elif self.emulator_net_size == "option5":
+            from algorithms.unets.option5 import EmulatorAttentionUNet
+        elif self.emulator_net_size == "option6":
+            from algorithms.unets.option6 import EmulatorAttentionUNet
         self.model = EmulatorAttentionUNet(2, 1).to(device)
         self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 

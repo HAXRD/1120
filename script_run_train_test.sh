@@ -2,7 +2,7 @@
 # TODO: go to pretrain to comment out collect
 
 CUDA_VISIBLE_DEVICES=0  # TODO: change CUDA for different server
-seed=0          # TODO: change seed for each collect
+seed=0
 
 name_addon=run
 scenario=pattern

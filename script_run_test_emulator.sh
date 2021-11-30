@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CUDA_VISIBLE_DEVICES=0
-seed=0          # TODO: change seed for each collect
+seed=0
 
 name_addon=run
 scenario=pattern

@@ -10,7 +10,6 @@ scenario=pattern
 collect_strategy=default
 
 # pretrain collect
-CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
 python pretrain.py \
 --name_addon ${name_addon} --scenario ${scenario} \
 --splits 50_000 5_000 500 \

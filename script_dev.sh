@@ -2,74 +2,56 @@
 
 rm -rf results_dev
 
-#### hyperparams ###
 CUDA_VISIBLE_DEVICES=0
 
-n_BM=200
-n_GU=100
-n_ABS=5
+n_BM=100
+n_GU=10
+n_ABS=3
 
 granularity=15.625
 
-scenario=pattern    # TODO: change this to switch to 'precise'
-method=naive-kmeans # TODO: change this to switch to 'mutation-kmeans' or 'map-elites'
+scenario=pattern
 name_addon=dev
 
+collect_strategy=default
 
-#### emulator training ####
 emulator_batch_size=32
 num_emulator_epochs=5
 
 planning_batch_size=32
 num_eval_episodes=20
 
-# generate terrain file
-for n in 0 ${n_BM}
-do
-    python gen_terrain.py --n_BM $n
-done
-
-
 # pretrain
-for str in pretrain
-do
-    CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-    python ${str}.py \
-    --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
-    --granularity ${granularity} \
-    --scenario ${scenario} --method ${method} \
-    --name_addon ${name_addon} \
-    --splits 50 50 50 \
-    --emulator_batch_size ${emulator_batch_size} \
-    --num_emulator_epochs ${num_emulator_epochs} \
-    --planning_batch_size ${planning_batch_size} \
-    --num_eval_episodes ${num_emulator_epochs}
-done
+CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
+python pretrain.py \
+--n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
+--granularity ${granularity} \
+--scenario ${scenario} \
+--name_addon ${name_addon} \
+--splits 10 10 10 \
+--emulator_batch_size ${emulator_batch_size} \
+--num_emulator_epochs ${num_emulator_epochs}
 
+# test emulator
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
 python test_emulator.py \
 --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
 --granularity ${granularity} \
---scenario ${scenario} --method ${method} \
+--scenario ${scenario} \
 --name_addon ${name_addon} \
---splits 50 50 50 \
 --emulator_batch_size ${emulator_batch_size} \
---num_emulator_epochs ${num_emulator_epochs} \
---planning_batch_size ${planning_batch_size} \
---num_eval_episodes ${num_emulator_epochs} \
 --random_on_off --p_on 0.8
 
-# for method in naive-kmeans mutation-kmeans map-elites
-# do
-#     CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-#     python eval.py \
-#     --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
-#     --granularity ${granularity} \
-#     --scenario ${scenario} --method ${method} \
-#     --name_addon ${name_addon} \
-#     --splits 50 50 50 \
-#     --emulator_batch_size ${emulator_batch_size} \
-#     --num_emulator_epochs ${num_emulator_epochs} \
-#     --planning_batch_size ${planning_batch_size} \
-#     --num_eval_episodes ${num_emulator_epochs}
-# done
+# bundle
+for method in naive-kmeans mutation-kmeans map-elites
+do
+    CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
+    python eval.py \
+    --n_BM ${n_BM} --n_GU ${n_GU} --n_ABS ${n_ABS} \
+    --granularity ${granularity} \
+    --scenario ${scenario} --method ${method} \
+    --name_addon ${name_addon} \
+    --emulator_batch_size ${emulator_batch_size} \
+    --planning_batch_size ${planning_batch_size} \
+    --num_eval_episodes ${num_eval_episodes}
+done

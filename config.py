@@ -20,9 +20,9 @@ def get_config():
                         help="side length of the square shape world.")
     parser.add_argument("--episode_duration", type=float, default=10,
                         help="duration of 1 episode.")
-    parser.add_argument("--n_step_explore", type=int, default=32,
+    parser.add_argument("--n_step_explore", type=int, default=40,
                         help="# of steps to explore for each episode.")
-    parser.add_argument("--n_step_serve", type=int, default=64,
+    parser.add_argument("--n_step_serve", type=int, default=60,
                         help="# of steps to serve for each episode.")
     parser.add_argument("--n_BM", type=int, default=150,
                         help="# of BMs for Site-specific environment.")

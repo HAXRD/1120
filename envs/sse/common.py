@@ -30,6 +30,27 @@ def compute_2D_distance(pos1, pos2):
     assert pos2.shape == (2,)
     return np.sqrt(np.sum((pos1 - pos2)**2))
 
+def compute_PL(p_t, awgn, snr_threshold, p_non):
+    """
+    :param p_t : transmit power (dBm);
+    :param awgn: additive white Gaussian noise (dBm);
+    :param snr_threshold: required SNR threshold (dB);
+    :param p_non: non-outage probability;
+    :return PL: breaking-point PL (dB)
+    """
+    def _dBm_2_Watt(x):
+        return 10 ** (x / 10) / 1000.
+
+    def _dB_2_unit1(x):
+        return 10 ** (x / 10)
+
+    def _unit1_2_dB(x):
+        return 10 * math.log10(x)
+
+    PL = _unit1_2_dB(-math.log(p_non) * _dBm_2_Watt(p_t) / _dB_2_unit1(snr_threshold) / _dBm_2_Watt(awgn))
+
+    return PL
+
 def compute_R_2D_NLoS(PL, h_ABS, h_GU, f_c):
     """
     According to 3GPP empirical formula:

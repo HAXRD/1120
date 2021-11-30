@@ -1,9 +1,10 @@
-# Copyright (c) 2021, Xu Chen, FUNLab, Xiamen University
+    # Copyright (c) 2021, Xu Chen, FUNLab, Xiamen University
 # All rights reserved.
 
 import os
 from pathlib import Path
 import argparse
+from envs.sse.common import compute_PL
 
 def get_config():
     """
@@ -46,10 +47,14 @@ def get_config():
 
     parser.add_argument("--f_c", type=float, default=2.,
                         help="carrier frequency (GHz).")
-    parser.add_argument("--p_t", type=float, default=0.,
-                        help="maximum transmit power.")
-    parser.add_argument("--p_r", type=float, default=-87,
-                        help="minimum receive power.")
+    parser.add_argument("--p_t", type=float, default=-10,
+                        help="maximum transmit power (-10~20)(dBm).")
+    parser.add_argument("--awgn", type=float, default=-112,
+                        help="noise to signal (-124dBm).")
+    parser.add_argument("--snr_threshold", type=float, default=3,
+                        help="minimum required SNR threshold (dB).")
+    parser.add_argument("--p_non", type=float, default=0.90,
+                        help="non-outage probability.")
 
     # precise only
     # TODO: add more
@@ -78,7 +83,7 @@ def get_config():
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
                         help="either 'default' or 'subset' or 'hybrid'.")
-    parser.add_argument("--emulator_net_size", type=str, default="small")
+    parser.add_argument("--emulator_net_size", type=str, default="option2")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
     parser.add_argument("--file_episode_limit", type=int, default=40000,
@@ -159,6 +164,14 @@ def get_config():
                         help="duration of a step.")
     parser.add_argument("--run_dir", default=run_dir,
                         help="`Path` object, specifying working directory.")
+
+    # compute PL with given specs
+    PL = compute_PL(args.p_t,
+                    args.awgn,
+                    args.snr_threshold,
+                    args.p_non)
+    parser.add_argument("--PL", type=float, default=PL,
+                        help="breaking-point path loss with given specs.")
 
     return parser
 

@@ -136,8 +136,8 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
                     P_CGUs[n * _episode] = P_CGU
 
                     if _prefix == "train":
-                        abs_id = random.randrange(env.world.n_ABS)
-                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                        abs_ids = [random.randrange(env.world.n_ABS)]
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
                         P_GUs[n * _episode + 2] = P_GU_aug
                         P_ABSs[n * _episode + 2] = P_ABS_aug
                         P_CGUs[n * _episode + 2] = P_CGU_aug
@@ -153,8 +153,8 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
                     P_CGUs[n * _episode + 1] = P_CGU
 
                     if _prefix == 'train':
-                        abs_id = random.randrange(env.world.n_ABS)
-                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_id)
+                        abs_ids = [random.randrange(env.world.n_ABS)]
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
                         P_GUs[n * _episode + 3] = P_GU_aug
                         P_ABSs[n * _episode + 3] = P_ABS_aug
                         P_CGUs[n * _episode + 3] = P_CGU_aug
@@ -326,6 +326,7 @@ if __name__ == "__main__":
     parser = get_config()
     args = parser.parse_args()
     pprint(args)
+    print(f"PL: {args.PL}")
 
     # cuda
     torch.set_num_threads(1)

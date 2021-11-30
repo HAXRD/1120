@@ -112,8 +112,7 @@ class World(object):
         self.step_duration = 0.
         # TODO: 3GPP equations
         self.f_c = 0.           # carrier frequency
-        self.p_t = 0.           # maximum transmit power (in log)
-        self.p_r = 0.           # minimum receive power (in log)
+        self.PL = 0.            # path loss
 
         # BMs
         self.BMs = self._process_BMs()
@@ -379,7 +378,7 @@ class World(object):
         assert isinstance(abs, ABS)
         assert isinstance(gu, GU)
 
-        path_loss = self.p_t - self.p_r
+        path_loss = self.PL
         f_c = self.f_c
         h_ABS = abs.pos[-1]
         h_GU = gu.pos[-1]

@@ -26,8 +26,7 @@ class Scenario(BaseScenario):
 
         # 3GPP empirical formula
         world.f_c = args.f_c
-        world.p_t = args.p_t
-        world.p_r = args.p_r
+        world.PL = args.PL
 
         # GUs
         world.n_GU = args.n_GU

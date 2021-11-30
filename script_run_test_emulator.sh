@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CUDA_VISIBLE_DEVICES=0
+CUDA_VISIBLE_DEVICES=0  # TODO: change CUDA for different server
 seed=0
 
 name_addon=run

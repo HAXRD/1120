@@ -81,7 +81,7 @@ def get_config():
     parser.add_argument("--emulator_net_size", type=str, default="small")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
-    parser.add_argument("--file_episode_limit", type=int, default=50000,
+    parser.add_argument("--file_episode_limit", type=int, default=40000,
                         help="# of maximum episode per npz file.")
     parser.add_argument("--emulator_batch_size", type=int, default=128,
                         help="batch size for training emulator.")

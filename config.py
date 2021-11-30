@@ -77,7 +77,7 @@ def get_config():
     ####### pattern only #######
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
-                        help="either 'default' or 'subset'.")
+                        help="either 'default' or 'subset' or 'hybrid'.")
     parser.add_argument("--emulator_net_size", type=str, default="small")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
@@ -147,7 +147,7 @@ def get_config():
     collect_strategy = args.collect_strategy
     if args.scenario == "pattern":
         assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
-        assert collect_strategy in ["default", "subset"]
+        assert collect_strategy in ["default", "subset", "hybrid"]
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")
 

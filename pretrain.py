@@ -63,6 +63,8 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
                 n = 4
             elif collect_strategy == "subset":
                 n = n_ABS * 2
+            elif collect_strategy == "hybrid":
+                n = n_ABS * 2
 
         while cur_episodes > 0:
             episodes = min(cur_episodes, file_episode_limit)
@@ -71,14 +73,15 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
             P_CGUs = np.zeros((episodes * n, K, K), dtype=np.float32)
 
             for _episode in tqdm(range(episodes)):
-                
+
                 if _prefix == "train" and collect_strategy == "subset":
                     # totally random
                     env.reset()
                     env.render(RENDER)
 
                     for _abs_id in range(n_ABS):
-                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(_abs_id)
+                        abs_ids = [_abs_id]
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
                         P_GUs[n * _episode + _abs_id] = P_GU_aug
                         P_ABSs[n * _episode + _abs_id] = P_ABS_aug
                         P_CGUs[n * _episode + _abs_id] = P_CGU_aug
@@ -89,12 +92,38 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
                     env.render(RENDER)
 
                     for _abs_id in range(n_ABS):
-                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(_abs_id)
+                        abs_ids = [_abs_id]
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
                         P_GUs[n * _episode + _abs_id + n_ABS] = P_GU_aug
                         P_ABSs[n * _episode + _abs_id + n_ABS] = P_ABS_aug
                         P_CGUs[n * _episode + _abs_id + n_ABS] = P_CGU_aug
 
-                    pass
+                elif _prefix == "train" and collect_strategy == "hybrid":
+                    # totally random
+                    env.reset()
+                    env.render(RENDER)
+
+                    for j in range(n_ABS):
+                        # sample different abs_ids
+                        abs_ids = random.sample(range(n_ABS), j+1)
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
+                        P_GUs[n * _episode + j] = P_GU_aug
+                        P_ABSs[n * _episode + j] = P_ABS_aug
+                        P_CGUs[n * _episode + j] = P_CGU_aug
+
+                    # kmeans
+                    kmeans_P_ABS = env.find_KMEANS_P_ABS()
+                    env.step(kmeans_P_ABS)
+                    env.render(RENDER)
+
+                    for j in range(n_ABS):
+                        # sample different abs_ids
+                        abs_ids = random.sample(range(n_ABS), j+1)
+                        P_GU_aug, P_ABS_aug, P_CGU_aug = env.get_all_Ps_with_augmentation(abs_ids)
+                        P_GUs[n * _episode + j + n_ABS] = P_GU_aug
+                        P_ABSs[n * _episode + j + n_ABS] = P_ABS_aug
+                        P_CGUs[n * _episode + j + n_ABS] = P_CGU_aug
+
                 elif (_prefix == "train" and collect_strategy == "default") \
                     or _prefix in ["val", "test"]:
                     # totally random

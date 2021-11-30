@@ -213,28 +213,28 @@ class SiteSpecificEnv(gym.Env):
             self.get_P_CGU()
         )
 
-    def get_P_GU_with_augmentation(self, abs_id):
-        return self.get_P_GU_with_augmentation_callback(self.world, abs_id, self.args.normalize_pattern)
+    def get_P_GU_with_augmentation(self, abs_ids):
+        return self.get_P_GU_with_augmentation_callback(self.world, abs_ids, self.args.normalize_pattern)
 
-    def get_P_ABS_with_augmentation(self, abs_id):
-        return self.get_P_ABS_with_augmentation_callback(self.world, abs_id)
+    def get_P_ABS_with_augmentation(self, abs_ids):
+        return self.get_P_ABS_with_augmentation_callback(self.world, abs_ids)
 
-    def get_P_CGU_with_augmentation(self, abs_id):
-        return self.get_P_CGU_with_augmentation_callback(self.world, abs_id, self.args.normalize_pattern)
+    def get_P_CGU_with_augmentation(self, abs_ids):
+        return self.get_P_CGU_with_augmentation_callback(self.world, abs_ids, self.args.normalize_pattern)
 
-    def get_all_Ps_with_augmentation(self, abs_id):
+    def get_all_Ps_with_augmentation(self, abs_ids):
         return (
-            self.get_P_GU_with_augmentation(abs_id),
-            self.get_P_ABS_with_augmentation(abs_id),
-            self.get_P_CGU_with_augmentation(abs_id)
+            self.get_P_GU_with_augmentation(abs_ids),
+            self.get_P_ABS_with_augmentation(abs_ids),
+            self.get_P_CGU_with_augmentation(abs_ids)
         )
 
     ### precise only ###
-    def get_state(self):
-        return self.get_state_callback()
+    def get_state(self, abs_id):
+        return self.get_state_callback(self.world, abs_id)
 
-    def get_reward(self):
-        return self.get_reward_callback()
+    def get_reward(self, abs_id):
+        return self.get_reward_callback(self.world, abs_id)
 
     def sample_action(self):
         return self.sample_action_callback()

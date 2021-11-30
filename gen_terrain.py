@@ -44,11 +44,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--world_len', type=float, default=1000)
     parser.add_argument('--mesh_len', type=float, default=31.25)
-    parser.add_argument('--n_BM', type=int, default=150)
+    parser.add_argument('--n_BM', type=int, required=True)
     parser.add_argument('--save_dir', type=str, default='./')
     parser.add_argument('--seed', type=int, default=2021)
-    parser.add_argument('--random_h', action='store_true', default=False,
-                        help="by default false, using same height.")
+    parser.add_argument('--random_h', action='store_false', default=True,
+                        help="by default true, using random height.")
     parser.add_argument('--h_min', type=int, default=30)
     parser.add_argument('--h_max', type=int, default=90)
     args = parser.parse_args()

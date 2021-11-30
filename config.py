@@ -38,7 +38,7 @@ def get_config():
                         help="height of ABSs.")
     parser.add_argument("--h_GU", type=float, default=1,
                         help="height of GUs.")
-    parser.add_argument("--render", type=str, default="human",
+    parser.add_argument("--render", type=str, default="non-display",
                         help="either 'non-display' or 'human'.")
     parser.add_argument("--random_on_off", action="store_true", default=False,
                         help="by default false, not use random on&off for GUs.")
@@ -86,7 +86,7 @@ def get_config():
     parser.add_argument("--emulator_net_size", type=str, default="option2")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
-    parser.add_argument("--file_episode_limit", type=int, default=40000,
+    parser.add_argument("--file_episode_limit", type=int, default=50000,
                         help="# of maximum episode per npz file.")
     parser.add_argument("--emulator_batch_size", type=int, default=128,
                         help="batch size for training emulator.")

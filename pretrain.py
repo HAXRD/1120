@@ -41,6 +41,7 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
     splits = args.splits
     file_episode_limit = args.file_episode_limit
     collect_strategy = args.collect_strategy
+    num_episodes_per_trial = args.num_episodes_per_trial
 
     # replay saving dir
     replay_dir = os.path.join(run_dir, "emulator_replays")
@@ -75,8 +76,12 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
             for _episode in tqdm(range(episodes)):
 
                 if _prefix == "train" and collect_strategy == "subset":
+
                     # totally random
-                    env.reset()
+                    if _episode % num_episodes_per_trial == 0:
+                        env.reset()
+                    else:
+                        env.walk()
                     env.render(RENDER)
 
                     for _abs_id in range(n_ABS):
@@ -99,8 +104,12 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
                         P_CGUs[n * _episode + _abs_id + n_ABS] = P_CGU_aug
 
                 elif _prefix == "train" and collect_strategy == "hybrid":
+
                     # totally random
-                    env.reset()
+                    if _episode % num_episodes_per_trial == 0:
+                        env.reset()
+                    else:
+                        env.walk()
                     env.render(RENDER)
 
                     for j in range(n_ABS):
@@ -126,8 +135,12 @@ def collect(args, ENV_TYPE="base", RENDER="non-display"):
 
                 elif (_prefix == "train" and collect_strategy == "default") \
                     or _prefix in ["val", "test"]:
+
                     # totally random
-                    env.reset()
+                    if _episode % num_episodes_per_trial == 0:
+                        env.reset()
+                    else:
+                        env.walk()
                     env.render(RENDER)
 
                     P_GU, P_ABS, P_CGU = env.get_all_Ps()

@@ -305,6 +305,7 @@ def test(args, device=torch.device("cpu")):
 
     bz = 1
     total = 0
+    total_CR_error = 0
     total_test_size = 0
     pin_memory = not (device == torch.device("cpu"))
     for _fpaths in zip(*test_list_of_fpaths):
@@ -328,10 +329,11 @@ def test(args, device=torch.device("cpu")):
             CR = torch.sum(P_CGUs) / torch.sum(P_GUs)
             pCR = torch.sum(P_rec_CGUs) / torch.sum(P_GUs)
 
-            print(f"{CR} - {pCR} == {CR - pCR}")
+            pred_CR_error = torch.sum(torch.abs(CR - pCR)).cpu().numpy()
+            total_CR_error += pred_CR_error
+            print(f"|{CR} - {pCR}| == {pred_CR_error}")
 
-    print(total / total_test_size)
-
+    print(f"elem_error: {total / total_test_size}, CR_error: {total_CR_error / total_test_size}")
 
 if __name__ == "__main__":
 

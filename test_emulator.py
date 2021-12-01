@@ -21,7 +21,7 @@ def test(args, device=torch.device("cpu")):
     num_episodes_per_trial = args.num_episodes_per_trial
     run_dir = args.run_dir
     K = args.K
-    
+
     # dirs
     ckpt_dir = os.path.join(run_dir, "emulator_ckpts")
 
@@ -60,10 +60,11 @@ def test(args, device=torch.device("cpu")):
 
         CR = torch.sum(P_CGUs) / eval_env.world.n_ON_GU
         pCR = torch.sum(P_rec_CGUs) / eval_env.world.n_ON_GU
-        CR_error = CR - pCR
-        mean_CR_error.append(CR_error.cpu().numpy())
-        pprint("[CGU] - [recons] == [diff]")
-        pprint(f"{CR} - {pCR} == {CR_error}")
+        CR_error = torch.sum(torch.abs(CR - pCR)).cpu().numpy()
+
+        mean_CR_error.append(CR_error)
+        pprint("|[CGU] - [recons]| == [diff]")
+        pprint(f"|{CR} - {pCR}| == {CR_error}")
 
     mean_elem_error = np.mean(mean_elem_error)
     mean_CR_error = np.mean(mean_CR_error)

@@ -30,7 +30,7 @@ def get_config():
                         help="# of ABSs.")
     parser.add_argument("--n_GU", type=int, default=100,
                         help="# of GUs.")
-    parser.add_argument("--v_ABS", type=float, default=25,
+    parser.add_argument("--v_ABS", type=float, default=50,
                         help="velocity of ABSs.")
     parser.add_argument("--v_GU", type=float, default=2,
                         help="velocity of GUs.")

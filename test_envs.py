@@ -22,7 +22,21 @@ def test_pattern():
     pprint(env.get_all_Ps())
 
 def test_precise():
-    pass
+    env = make_env(args, "train")
+    env.reset()
+    env.render()
+
+    pprint(env.get_states())
+
+    env.walk()
+    env.render()
+    while True:
+        actions = env.sample_actions()
+        pprint(actions)
+        env.step(actions)
+        env.render()
+
+        pprint(env.get_states())
 
 if __name__ == "__main__":
     

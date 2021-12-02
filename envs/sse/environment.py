@@ -29,10 +29,10 @@ class SiteSpecificEnv(gym.Env):
                  get_P_ABS_with_augmentation_callback=None,
                  get_P_CGU_with_augmentation_callback=None,
 
-                 get_state_callback=None,
-                 get_reward_callback=None,
-                 sample_action_callback=None,
-                 find_KMEANS_ABS_callback=None
+                 get_states_callback=None,
+                 get_rewards_callback=None,
+                 get_costs_callback=None,
+                 sample_actions_callback=None
                  ):
 
         assert isinstance(world, World)
@@ -52,11 +52,10 @@ class SiteSpecificEnv(gym.Env):
         self.get_P_ABS_with_augmentation_callback = get_P_ABS_with_augmentation_callback
         self.get_P_CGU_with_augmentation_callback = get_P_CGU_with_augmentation_callback
 
-        self.get_state_callback = get_state_callback
-        self.get_reward_callback = get_reward_callback
-        self.sample_action_callback = sample_action_callback
-        self.find_KMEANS_ABS_callback = find_KMEANS_ABS_callback
-
+        self.get_states_callback = get_states_callback
+        self.get_rewards_callback = get_rewards_callback
+        self.get_costs_callback = get_costs_callback
+        self.sample_actions_callback = sample_actions_callback
 
         # rendering
         self.cam_range = 1.2 * self.world.world_len
@@ -104,12 +103,12 @@ class SiteSpecificEnv(gym.Env):
                     for _ in range(int(P_ABS[i, j])):
                         self.world.ABSs[l].pos[:2] = (np.array([i, j], dtype=np.float32) + 0.5) * granularity
                         l += 1
-            self.world.dispatch()
+            self.world.update()
         elif self.scenario == 'precise': # set ABSs actions
             for _action, _abs in zip(action, self.world.ABSs):
                 assert isinstance(_abs, ABS)
                 _abs.action = DIRECTIONs_3D[_action]
-            self.world.update()
+            self.world.dispatch()
 
     def seed(self, seed=0):
         np.random.seed(seed)
@@ -230,19 +229,18 @@ class SiteSpecificEnv(gym.Env):
         )
 
     ### precise only ###
-    def get_state(self, abs_id):
-        return self.get_state_callback(self.world, abs_id)
+    def get_states(self):
+        return self.get_states_callback(self.world)
 
-    def get_reward(self, abs_id):
-        return self.get_reward_callback(self.world, abs_id)
+    def get_rewards(self):
+        return self.get_rewards_callback(self.world)
 
-    def sample_action(self):
-        return self.sample_action_callback()
+    def get_costs(self):
+        return self.get_rewards_callback(self.world)
 
+    def sample_actions(self):
+        return self.sample_actions_callback(self.world)
 
     ############### utils methods ###############
     def find_KMEANS_P_ABS(self, seed=0):
         return self.find_KMEANS_P_ABS_callback(self.world, seed)
-
-    def find_KMEANS_ABS(self, seed=0):
-        return self.find_KMEANS_ABS_callback(self.world, seed)

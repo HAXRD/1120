@@ -28,8 +28,8 @@ def SSEEnv(args, is_base, seed=0):
         env = SiteSpecificEnv(args=args,
                               world=world,
                               reset_world_callback=scenario.reset_world,
-                              get_state_callback=scenario.get_state,
-                              sample_action_callback=scenario.sample_action,
-                              get_reward_callback=scenario.get_reward,
-                              find_KMEANS_ABS_callback=scenario.find_KMEANS_ABS)
+                              get_states_callback=scenario.get_states,
+                              get_rewards_callback=scenario.get_rewards,
+                              get_costs_callback=scenario.get_costs,
+                              sample_actions_callback=scenario.sample_actions)
     return env

@@ -11,17 +11,24 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                // 'dev' debug
+                // 'dev' debug pattern
+                // "--n_BM", "50", "--n_GU", "10", "--n_ABS", "3",
+                // "--granularity", "15.625",
+                // "--scenario", "pattern", "--method", "map-elites",
+                // "--name_addon", "dev",
+                // "--emulator_net_size", "option2",
+                // "--emulator_batch_size", "32",
+                // "--num_emulator_epochs", "5",
+                // "--planning_batch_size", "32", "--num_eval_episodes", "20",
+                // "--splits", "100", "60", "60",
+                // "--collect_strategy", "hybrid",
+
+                // 'dev' debug precise
                 "--n_BM", "50", "--n_GU", "10", "--n_ABS", "3",
                 "--granularity", "15.625",
-                "--scenario", "pattern", "--method", "map-elites",
+                "--scenario", "precise",
                 "--name_addon", "dev",
-                "--emulator_net_size", "option2",
-                "--emulator_batch_size", "32",
-                "--num_emulator_epochs", "5",
-                "--planning_batch_size", "32", "--num_eval_episodes", "20",
-                "--splits", "2", "2", "2",
-                "--collect_strategy", "hybrid"
+                "--render", "human",
 
                 // 'run' debug
                 // "--n_BM", "50", "--p_t", "0", "--p_r", "-85",

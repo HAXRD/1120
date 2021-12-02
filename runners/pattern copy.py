@@ -140,8 +140,8 @@ class Runner(object):
         # assert self.preload_dir.exists()
 
         """Replays for emulator φ: train:val = 10:1"""
-        from replays.pattern.emulator import PrioritizedReplay
-        from replays.pattern.emulator import UniformReplay
+        from replays.pattern.replay_copy import PrioritizedReplay
+        from replays.pattern.replay_copy import UniformReplay
         self.emulator_replay = PrioritizedReplay(self.K, self.emulator_replay_size, self.emulator_alpha)
         self.emulator_val_replay = UniformReplay(self.K, self.emulator_replay_size // self.train_2_val_ratio)
 

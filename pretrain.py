@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 
 from config import get_config
 from common import make_env, npz_save
-from replays.pattern.emulator import UniformReplay as Replay
+from replays.pattern.replay import UniformReplay as Replay
 
 def collect(args, ENV_TYPE="base", RENDER="non-display"):
     """

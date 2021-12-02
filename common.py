@@ -44,7 +44,7 @@ def npz_load(fpath):
     return data['data']
 
 def load_n_copy(replay, replay_dir, prefix):
-    from replays.pattern.emulator import UniformReplay
+    from replays.pattern.replay import UniformReplay
     assert isinstance(replay, UniformReplay)
 
     P_GUs_fnames, P_ABSs_fnames, P_CGUs_fnames = [

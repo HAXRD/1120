@@ -4,7 +4,7 @@
 import torch
 from torch.utils.data import DataLoader
 
-from replays.pattern.emulator import UniformReplay
+from replays.pattern.replay import UniformReplay
 
 class Emulator:
     """

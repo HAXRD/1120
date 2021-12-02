@@ -6,6 +6,7 @@ import random
 import numpy as np
 from envs.sse.core import World, GU, ABS, BM
 from envs.sse.scenario import BaseScenario
+from envs.sse.common import DIRECTIONs_3D
 
 def get_onehot(n_classes,):
     """
@@ -108,7 +109,7 @@ class Scenario(BaseScenario):
     def get_states(self, world, POS_DIM=2):
         """
         Get the list of states for each agent (ABS).
-        :return states: (list), the element of it has the shape of (3*n_ABS,)
+        :return states: (n_ABS, 3*n_ABS),
         """
         assert isinstance(world, World)
 
@@ -124,10 +125,11 @@ class Scenario(BaseScenario):
         for _encoding in id_encodings:
             state = np.concatenate([locations, _encoding], axis=0).astype(np.int32) # remove decimal part
             state = state.astype(np.float32) # convert to float
-            assert state.shape == (2 * world.n_ABS + world.n_ABS, )
 
             states.append(state)
 
+        states = np.array(states, dtype=np.float32)
+        assert states.shape == (world.n_ABS, 3*world.n_ABS)
         return states
 
     def get_rewards(self, world):
@@ -136,13 +138,15 @@ class Scenario(BaseScenario):
 
         NOTE: based on total # of covered GUs
 
-        :return rewards: (list), the element of each is a float.
+        :return rewards: shape=(n_ABS,)
         """
         assert isinstance(world, World)
 
         reward = world.n_covered_ON_GU / world.n_ABS
         rewards = [reward for _ in range(world.n_ABS)]
 
+        rewards = np.array(rewards, dtype=np.float32)
+        assert rewards.shape == (world.n_ABS, )
         return rewards
 
     def get_costs(self, world):
@@ -151,7 +155,7 @@ class Scenario(BaseScenario):
 
         NOTE: based on the # of GUs covered by the current agent
 
-        :return costs: (list), each element is a float.
+        :return costs: shape=(n_ABS,)
         """
         assert isinstance(world, World)
 
@@ -163,6 +167,8 @@ class Scenario(BaseScenario):
                     for _item in _gu.covered_by:
                         costs[_item.id] += 1.
 
+        costs = np.array(costs, dtype=np.float32)
+        assert costs.shape(world.n_ABS, dtype=np.float32)
         return costs
 
     ############## Utils ##############
@@ -170,10 +176,43 @@ class Scenario(BaseScenario):
         """
         Sample a list of actions for ABSs (for epsilon greedy strategy).
 
-        :return actions: (list), each element is an integer.
+        :return actions: shape=(n_ABS,)
         """
         assert isinstance(world, World)
 
         actions = [world.action_space.sample() for _ in range(world.n_ABS)]
+
+        actions = np.array(actions, dtype=np.int32)
+        assert actions.shape == (world.n_ABS,)
         return actions
 
+    def get_action_filters(self, world):
+        """
+        Get a list of actions filter
+        :return action_filters: shape=(n_ABS, n_ABS)
+        """
+        assert isinstance(world, World)
+
+        locations = []
+        for _abs in world.ABSs:
+            assert isinstance(_abs, ABS)
+            locations.append(_abs.pos[:2])
+        locations = np.array(locations) # (n_ABS, 2)
+
+        one_step_distance = world.v_ABS * world.step_duration
+        lower_threshold = 0. + one_step_distance
+        upper_threshold = world.world_len - one_step_distance
+
+        action_filters = np.ones((world.n_ABS, len(DIRECTIONs_3D))) # (n_ABS, 5)
+
+        for i in range(world.n_ABS):
+            x, y = locations[i]
+            if y >= upper_threshold:    # cannot go north
+                action_filters[i][1] = 0
+            if x >= upper_threshold:    # cannot go east
+                action_filters[i][2] = 0
+            if y <= lower_threshold:    # cannot go south
+                action_filters[i][3] = 0
+            if x <= lower_threshold:    # cannot go west
+                action_filters[i][4] = 0
+        return action_filters

@@ -31,5 +31,6 @@ def SSEEnv(args, is_base, seed=0):
                               get_states_callback=scenario.get_states,
                               get_rewards_callback=scenario.get_rewards,
                               get_costs_callback=scenario.get_costs,
-                              sample_actions_callback=scenario.sample_actions)
+                              sample_actions_callback=scenario.sample_actions,
+                              get_action_filters_callback=scenario.get_action_filters)
     return env

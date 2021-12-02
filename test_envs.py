@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Xu Chen, FUNLab, Xiamen University
 # All rights reserved.
 
+import numpy as np
 from pprint import pprint
 from config import get_config
 from common import make_env
@@ -31,12 +32,14 @@ def test_precise():
     env.walk()
     env.render()
     while True:
-        actions = env.sample_actions()
+        # actions = env.sample_actions()
+        actions = np.ones((env.world.n_ABS,), dtype=np.int32)
         pprint(actions)
         env.step(actions)
         env.render()
 
         pprint(env.get_states())
+        pprint(env.get_action_filters())
 
 if __name__ == "__main__":
     

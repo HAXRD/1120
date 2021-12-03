@@ -82,7 +82,7 @@ def get_config():
     ####### precise only #######
     parser.add_argument("--num_env_episodes", type=int, default=100_000,
                         help="# of episodes to run in DQN based method.")
-    parser.add_argument("--epsilon", type=float, default=0.01,
+    parser.add_argument("--epsilon", type=float, default=0.1,
                         help="epsilon greedy exploration.")
     parser.add_argument("--qnet_lr", type=float, default=1.e-3,
                         help="QNet learning rate.")

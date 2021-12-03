@@ -14,7 +14,7 @@ Transition = namedtuple(
 class UniformReplay(object):
     """Uniform sampling replay."""
 
-    def __init__(self, max_size, STATE_DIM):
+    def __init__(self, max_size):
 
         self.max_size = max_size
         self.ptr = 0

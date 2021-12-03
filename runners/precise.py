@@ -4,6 +4,7 @@
 import os
 import time
 import numpy as np
+import random
 import logging
 from pathlib import Path
 
@@ -30,6 +31,7 @@ class Runner(object):
 
         ####### precise only ########
         self.num_env_episodes = self.args.num_env_episodes
+        self.num_episodes_per_trial = self.args.num_episodes_per_trial
         self.epsilon = self.args.epsilon
 
         self.n_warmup_episodes = self.args.n_warmup_episodes
@@ -42,7 +44,7 @@ class Runner(object):
 
         """Replay"""
         from replays.precise.replay import UniformReplay
-        self.replay = UniformReplay(self.replay_size, 3*self.env.world.n_ABS)
+        self.replay = UniformReplay(self.replay_size)
 
         """Logging"""
         self.logger = logging.getLogger("precise-runner")
@@ -62,9 +64,12 @@ class Runner(object):
 
         """Specs"""
         num_env_episodes = self.num_env_episodes
+        num_episodes_per_trial = self.num_episodes_per_trial
+
         n_step = self.n_step
         n_warmup_episodes = self.n_warmup_episodes
         batch_size = self.batch_size
+        epsilon = self.epsilon
 
         """Start algorithm"""
         updates = 0
@@ -72,7 +77,7 @@ class Runner(object):
         for _episode in range(num_env_episodes):
 
             # reset or walk
-            if _episode == 0: # TODO: might change this to reset env periodically
+            if _episode % num_episodes_per_trial == 0: # TODO: might change this to reset env periodically
                 self.env.reset()
             else:
                 self.env.walk()
@@ -80,13 +85,13 @@ class Runner(object):
 
             # select & perform action to collect transitions
             step_CRs = []
-            is_random = True
+            episode_reward = 0.
 
-            if _episode % 5 == 0:
+            """if _episode % 5 == 0:
                 if _episode < n_warmup_episodes:
                     self.logger.info(f"[train | random | {_episode+1}/{num_env_episodes}] ")
                 else:
-                    self.logger.info(f"[train | policy | {_episode+1}/{num_env_episodes}]")
+                    self.logger.info(f"[train | policy | {_episode+1}/{num_env_episodes}]")"""
 
             for _step in range(n_step):
 
@@ -94,11 +99,17 @@ class Runner(object):
                 states = self.env.get_states()  # (n_ABS, 3*n_ABS)
                 action_filters = self.env.get_action_filters()
 
+
+                """
                 if _episode < n_warmup_episodes:
                     actions = self.env.sample_actions(action_filters)
                 else:
-                    if is_random:
-                        is_random = False
+                    actions = self.policy.select_actions(states, action_filters)
+                """
+
+                if random.random() < epsilon:
+                    actions = self.env.sample_actions(action_filters)
+                else:
                     actions = self.policy.select_actions(states, action_filters)
 
                 # perform actions
@@ -116,6 +127,8 @@ class Runner(object):
                     masks = np.array([0 for _ in range(self.env.world.n_ABS)])
                 else:
                     masks = np.array([1 for _ in range(self.env.world.n_ABS)])
+
+                episode_reward += np.mean(rewards)
 
                 for _s, _a, _m, _r, _ns, _nsaf in zip(states, actions, masks, rewards, next_states, next_states_action_filters):
                     _data = _s, _a, _m, _r, _ns, _nsaf
@@ -135,6 +148,6 @@ class Runner(object):
                     print(f"[train | {_episode+1} | {end - start:.5f}s] loss: {loss}")
 
             mean_CR = np.mean(step_CRs)
-            self.writer.add_scalar("mean_CR", mean_CR, _episode)
-
-            self.logger.info(f"[train | {_episode} | policy] mean_CR: {mean_CR}")
+            self.writer.add_scalar("metric/mean_CR", mean_CR, _episode)
+            self.writer.add_scalar("metric/reward", episode_reward, _episode)
+            self.logger.info(f"[train | {_episode} | policy] mean_CR: {mean_CR}, reward: {episode_reward}")

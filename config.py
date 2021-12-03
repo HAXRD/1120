@@ -38,7 +38,7 @@ def get_config():
                         help="height of ABSs.")
     parser.add_argument("--h_GU", type=float, default=1,
                         help="height of GUs.")
-    parser.add_argument("--render", type=str, default="non-display",
+    parser.add_argument("--render", type=str, default="human",
                         help="either 'non-display' or 'human'.")
     parser.add_argument("--random_on_off", action="store_true", default=False,
                         help="by default false, not use random on&off for GUs.")

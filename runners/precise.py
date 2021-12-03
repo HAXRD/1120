@@ -35,8 +35,6 @@ class Runner(object):
         self.n_warmup_episodes = self.args.n_warmup_episodes
         self.replay_size = self.args.replay_size
         self.batch_size = self.args.policy_batch_size
-        self.updates_per_step = self.args.updates_per_step
-        self.sync_steps = self.args.sync_steps
 
         """DQN"""
         from algorithms.policy import Policy
@@ -134,7 +132,7 @@ class Runner(object):
                     end = time.time()
                     self.writer.add_scalar("loss", loss, updates)
 
-                    print(f"[train | {_episode+1} | {start - end:.5f}s] loss: {loss}")
+                    print(f"[train | {_episode+1} | {end - start:.5f}s] loss: {loss}")
 
             mean_CR = np.mean(step_CRs)
             self.writer.add_scalar("mean_CR", mean_CR, _episode)

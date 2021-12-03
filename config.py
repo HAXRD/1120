@@ -90,17 +90,13 @@ def get_config():
                         help="hidden size for DuelingDDQN")
     parser.add_argument("--gamma", type=float, default=0.99,
                         help="discount factor for reward.")
-    parser.add_argument("--tau", type=float, default=1.e-3,
+    parser.add_argument("--tau", type=float, default=1.e-2,
                         help="polyak update for updating model.")
     parser.add_argument("--soft_update_period", type=int, default=1,
                         help="how many episodes to do once for polyak update.")
 
     parser.add_argument("--policy_batch_size", type=int, default=128,
                         help="batch size to train policy.")
-    parser.add_argument("--updates_per_step", type=int, default=5,
-                        help="model updates per step.")
-    parser.add_argument("--sync_steps", type=int, default=4,
-                        help="# of steps to sync target network with online one.")
     parser.add_argument("--replay_size", type=int, default=50_000,
                         help="size of replay buffer.")
     parser.add_argument("--n_warmup_episodes", type=int, default=10,

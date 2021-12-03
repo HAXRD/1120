@@ -38,8 +38,8 @@ def test_precise():
         env.step(actions)
         env.render()
 
-        pprint(env.get_states())
-        pprint(env.get_action_filters())
+        print(f"states: {env.get_states()}")
+        print(f"filters: {env.get_action_filters()}")
 
 if __name__ == "__main__":
     

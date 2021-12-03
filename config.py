@@ -79,6 +79,35 @@ def get_config():
     parser.add_argument("--use_eval", action="store_true", default=False,
                         help="by default not doing evaluation.")
 
+    ####### precise only #######
+    parser.add_argument("--num_env_episodes", type=int, default=100_000,
+                        help="# of episodes to run in DQN based method.")
+    parser.add_argument("--epsilon", type=float, default=0.01,
+                        help="epsilon greedy exploration.")
+    parser.add_argument("--qnet_lr", type=float, default=1.e-3,
+                        help="QNet learning rate.")
+    parser.add_argument("--hidden_size", type=int, default=64,
+                        help="hidden size for DuelingDDQN")
+    parser.add_argument("--gamma", type=float, default=0.99,
+                        help="discount factor for reward.")
+    parser.add_argument("--tau", type=float, default=1.e-3,
+                        help="polyak update for updating model.")
+    parser.add_argument("--soft_update_period", type=int, default=1,
+                        help="how many episodes to do once for polyak update.")
+
+    parser.add_argument("--policy_batch_size", type=int, default=128,
+                        help="batch size to train policy.")
+    parser.add_argument("--updates_per_step", type=int, default=5,
+                        help="model updates per step.")
+    parser.add_argument("--sync_steps", type=int, default=4,
+                        help="# of steps to sync target network with online one.")
+    parser.add_argument("--replay_size", type=int, default=50_000,
+                        help="size of replay buffer.")
+    parser.add_argument("--n_warmup_episodes", type=int, default=10,
+                        help="# of warmup episodes to use epsilon greedy policy.")
+
+
+
     ####### pattern only #######
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",

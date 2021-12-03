@@ -79,16 +79,13 @@ class Scenario(BaseScenario):
 
         return world
 
-    def reset_world(self, world):
+    def reset_world(self, world, ABS_KMEANS=True, seed=0):
         """
         Set random initial positions of GUs & ABSs in world.
         """
         assert isinstance(world, World)
 
         #### reset GUs & ABSs locations randomly ####
-        for _abs in world.ABSs:
-            _abs.pos[:2] = world.gen_1_2D_position(AVOID_COLLISION=False)
-            _abs.pos[-1] = world.h_ABS
         for _gu in world.GUs:
             _gu.pos[:2] = world.gen_1_2D_position(AVOID_COLLISION=True)
             _gu.pos[-1] = world.h_GU
@@ -98,6 +95,15 @@ class Scenario(BaseScenario):
                     _gu.ON = True
                 else:
                     _gu.ON = False
+        if ABS_KMEANS:
+            kmeans_centers = world.compute_KMEANS_centers(world.GUs, seed)
+            for _abs, _loc in zip(world.ABSs, kmeans_centers):
+                _abs.pos[:2] = _loc
+                _abs.pos[-1] = world.h_ABS
+        else:
+            for _abs in world.ABSs:
+                _abs.pos[:2] = world.gen_1_2D_position(AVOID_COLLISION=False)
+                _abs.pos[-1] = world.h_ABS
         # print(f'[env | init] initialization done.')
 
         #### reset CRs to 0.s ####
@@ -120,12 +126,12 @@ class Scenario(BaseScenario):
         for _abs in world.ABSs:
             assert isinstance(_abs, ABS)
             locations.append(_abs.pos[:POS_DIM])
-        locations = np.array(locations).reshape(-1)
+        locations = np.array(locations).reshape(-1) / world.world_len
         assert locations.shape == (2 * world.n_ABS, )
-        for _encoding in id_encodings:
-            state = np.concatenate([locations, _encoding], axis=0).astype(np.int32) # remove decimal part
-            state = state.astype(np.float32) # convert to float
 
+        # add encoding to each
+        for _encoding in id_encodings:
+            state = np.concatenate([locations, _encoding], axis=0)
             states.append(state)
 
         states = np.array(states, dtype=np.float32)
@@ -142,7 +148,14 @@ class Scenario(BaseScenario):
         """
         assert isinstance(world, World)
 
-        reward = world.n_covered_ON_GU / world.n_ABS
+        CR_delta = world.CR_new - world.CR_old
+        if CR_delta > 0:
+            reward = 1.
+        elif CR_delta == 0:
+            reward = -0.1
+        else:
+            reward = -1
+
         rewards = [reward for _ in range(world.n_ABS)]
 
         rewards = np.array(rewards, dtype=np.float32)
@@ -168,11 +181,11 @@ class Scenario(BaseScenario):
                         costs[_item.id] += 1.
 
         costs = np.array(costs, dtype=np.float32)
-        assert costs.shape(world.n_ABS, dtype=np.float32)
+        assert costs.shape == (world.n_ABS,)
         return costs
 
     ############## Utils ##############
-    def sample_actions(self, world):
+    def sample_actions(self, world, action_filters):
         """
         Sample a list of actions for ABSs (for epsilon greedy strategy).
 
@@ -180,7 +193,13 @@ class Scenario(BaseScenario):
         """
         assert isinstance(world, World)
 
-        actions = [world.action_space.sample() for _ in range(world.n_ABS)]
+        actions = []
+        for i in range(world.n_ABS):
+            while True:
+                action = world.action_space.sample()
+                if action_filters[i][action] == 1:
+                    actions.append(action)
+                    break
 
         actions = np.array(actions, dtype=np.int32)
         assert actions.shape == (world.n_ABS,)
@@ -203,7 +222,7 @@ class Scenario(BaseScenario):
         lower_threshold = 0. + one_step_distance
         upper_threshold = world.world_len - one_step_distance
 
-        action_filters = np.ones((world.n_ABS, len(DIRECTIONs_3D))) # (n_ABS, 5)
+        action_filters = np.ones((world.n_ABS, len(DIRECTIONs_3D)), dtype=np.int32) # (n_ABS, 5)
 
         for i in range(world.n_ABS):
             x, y = locations[i]

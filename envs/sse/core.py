@@ -194,7 +194,10 @@ class World(object):
 
         for _abs in self.ABSs:
             assert isinstance(_abs, ABS)
-            next_pos = np.clip(_abs.pos + _abs.action * v_ABS * step_duration, 0, world_len)
+            raw_next_pos = _abs.pos + _abs.action * v_ABS * step_duration
+            next_pos = np.clip(raw_next_pos, 0, world_len)
+            if not np.array_equal(raw_next_pos, next_pos):
+                print("filter not working.")
             next_x_idx, next_y_idx = np.clip((next_pos[:2] // mesh_len).astype(np.int32), 0, M - 1)
             if self.grids[next_x_idx, next_y_idx] <= next_pos[-1]:
                 _abs.pos = next_pos
@@ -212,8 +215,10 @@ class World(object):
         #### update all GUs' covered_by lists ####
         for _gu in self.GUs:
             assert isinstance(_gu, GU)
+
             # empty out covered_by list
             _gu.covered_by = []
+
             # recompute covered by list
             for _abs in self.ABSs:
                 assert isinstance(_abs, ABS)
@@ -232,6 +237,10 @@ class World(object):
                   (distance_2D >  R_2D_NLoS and distance_2D <= R_2D_LoS and self._judge_is_LoS(_abs, _gu)):
                   # update `covered_by` property
                   _gu.covered_by.append(CoverTuple(id=_abs.id, distance_2D=distance_2D))
+
+            # sort covered_by list
+            _gu.sort_covered_by()
+
             # change covered GUs' color
             if not _gu.ON: # disabled
                 _gu.color = COLORs['grey']

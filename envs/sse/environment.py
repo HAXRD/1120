@@ -122,7 +122,7 @@ class SiteSpecificEnv(gym.Env):
 
         # create viewer
         if self.viewer == None:
-            self.viewer = rendering.Viewer(1000, 1000)
+            self.viewer = rendering.Viewer(800, 800)
         # create rendering geometries
         self.render_geoms = []
         self.render_geoms_xform = []
@@ -238,10 +238,10 @@ class SiteSpecificEnv(gym.Env):
         return self.get_rewards_callback(self.world)
 
     def get_costs(self):
-        return self.get_rewards_callback(self.world)
+        return self.get_costs_callback(self.world)
 
-    def sample_actions(self):
-        return self.sample_actions_callback(self.world)
+    def sample_actions(self, action_filters):
+        return self.sample_actions_callback(self.world, action_filters)
 
     def get_action_filters(self):
         return self.get_action_filters_callback(self.world)

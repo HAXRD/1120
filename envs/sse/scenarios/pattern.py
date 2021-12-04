@@ -74,7 +74,7 @@ class Scenario(BaseScenario):
         #### reset CRs to 0.s ####
         world.CR_old = 0.
         world.CR_new = 0.
-        print("[env | reset] reset world.")
+        # print("[env | reset] reset world.")
 
 
     ############## Getters ##############

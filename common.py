@@ -2,11 +2,20 @@
 # All rights reserved.
 
 import os
+import torch
 import numpy as np
+import random
 import csv
+
+from pprint import pprint
+from pathlib import Path
 from glob import glob
-from envs.sse.SSE_env import SSEEnv
 from tqdm import tqdm
+
+from envs.sse.SSE_env import SSEEnv
+from config import get_config
+
+
 
 def make_env(args, TYPE):
     assert TYPE in ["base", "train", "eval"]
@@ -62,3 +71,30 @@ def load_n_copy(replay, replay_dir, prefix):
         data = P_GUs, P_ABSs, P_CGUs
         replay.paste(data)
         del data
+
+def run_preparation():
+    """
+    Shared code snippet across all simulation related code.
+    Call this function before do further ops.
+
+    :return: (
+        args,
+        run_dir
+    )
+    """
+
+    # get specs
+    parser = get_config()
+    args = parser.parse_args()
+    pprint(vars(args))
+
+    # run dir
+    run_dir = args.run_dir
+    assert isinstance(run_dir, Path)
+    if not run_dir.exists():
+        os.makedirs(str(run_dir))
+
+    return (
+        args,
+        run_dir
+    )

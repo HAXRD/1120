@@ -24,7 +24,7 @@ def get_config():
                         help="# of steps to explore for each episode.")
     parser.add_argument("--n_step_serve", type=int, default=60,
                         help="# of steps to serve for each episode.")
-    parser.add_argument("--n_BM", type=int, default=150,
+    parser.add_argument("--n_BM", type=int, required=True,
                         help="# of BMs for Site-specific environment.")
     parser.add_argument("--n_ABS", type=int, default=5,
                         help="# of ABSs.")
@@ -107,7 +107,7 @@ def get_config():
     ####### pattern only #######
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
-                        help="either 'default' or 'subset' or 'hybrid'.")
+                        help="either 'default' or 'half' or 'third'. For 'default', 1 episode will sample 2 replays, 'half' will sample 4 replays, 'third' will sample 6 replays.")
     parser.add_argument("--emulator_net_size", type=str, default="default",
                         help="AttentionUNet configuration for emulator.")
     parser.add_argument("--splits", type=int, nargs="+",
@@ -165,20 +165,19 @@ def get_config():
 
     K = int(args.world_len / args.granularity)
 
-    BMs_fname = f"terrain-{args.n_BM}.mat"
+    BMs_fname = f"./terrains/terrain-{args.n_BM}.mat"
     n_step = args.n_step_explore + args.n_step_serve
     step_duration = args.episode_duration / n_step
     run_dir = Path(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         f"results{'' if args.name_addon == '' else '_' + args.name_addon}",
-        f"{args.n_ABS}ABS_{args.n_GU}GU",
-        f"{args.scenario}" + f"{'' if args.scenario == 'precise' else '_' + str(K) + 'K'}"
+        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}"
     ))
     method = args.method
     collect_strategy = args.collect_strategy
     if args.scenario == "pattern":
         assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
-        assert collect_strategy in ["default", "subset", "hybrid"]
+        assert collect_strategy in ["default", "half", "third"]
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")
 
@@ -198,7 +197,7 @@ def get_config():
                     args.p_non)
     parser.add_argument("--PL", type=float, default=PL,
                         help="breaking-point path loss with given specs.")
-
+    assert args.render in ["human", "non-display"]
     return parser
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@
                 // "--granularity", "15.625",
                 // "--scenario", "pattern", "--method", "map-elites",
                 // "--name_addon", "dev",
-                // "--emulator_net_size", "option2",
+                // "--emulator_net_size", "default",
                 // "--emulator_batch_size", "32",
                 // "--num_emulator_epochs", "5",
                 // "--planning_batch_size", "32", "--num_eval_episodes", "20",

@@ -23,18 +23,10 @@ class Emulator:
         self.emulator_grad_clip_norm = args.emulator_grad_clip_norm
 
         self.device = device
-        if self.emulator_net_size == "option1":
-            from algorithms.unets.option1 import EmulatorAttentionUNet
-        elif self.emulator_net_size == "option2":
-            from algorithms.unets.option2 import EmulatorAttentionUNet
-        elif self.emulator_net_size == "option3":
-            from algorithms.unets.option3 import EmulatorAttentionUNet
-        elif self.emulator_net_size == "option4":
-            from algorithms.unets.option4 import EmulatorAttentionUNet
-        elif self.emulator_net_size == "option5":
-            from algorithms.unets.option5 import EmulatorAttentionUNet
-        elif self.emulator_net_size == "option6":
-            from algorithms.unets.option6 import EmulatorAttentionUNet
+        if self.emulator_net_size == "default":
+            from algorithms.unets.default import EmulatorAttentionUNet
+        elif self.emulator_net_size == "original":
+            from algorithms.unets.original import EmulatorAttentionUNet
         self.model = EmulatorAttentionUNet(2, 1).to(device)
         self.optim = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
@@ -43,7 +35,7 @@ class Emulator:
         :param UPDATE: update parameters if True;
         """
         assert isinstance(replay, UniformReplay)
-        
+
         # prepare DataLoader
         pin_memory = not (self.device == torch.device("cpu"))
         dataloader = DataLoader(replay, batch_size=self.emulator_batch_size, shuffle=UPDATE, pin_memory=pin_memory)

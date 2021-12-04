@@ -108,7 +108,8 @@ def get_config():
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
                         help="either 'default' or 'subset' or 'hybrid'.")
-    parser.add_argument("--emulator_net_size", type=str, default="option2")
+    parser.add_argument("--emulator_net_size", type=str, default="default",
+                        help="AttentionUNet configuration for emulator.")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
     parser.add_argument("--file_episode_limit", type=int, default=50000,

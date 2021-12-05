@@ -29,14 +29,9 @@ def make_env(args, TYPE):
     seed = a * args.seed + b
     env = SSEEnv(args, is_base, seed)
     env.seed(seed)
-    return env
+    print(f"[env | seed] processed seed for env is {seed}")
 
-def dict2csv(output_dict, fpath):
-    with open(fpath, "w") as f:
-        writer = csv.writer(f, delimiter=',')
-        for k, v in output_dict.items():
-            v = [k] + v
-            writer.writerow(v)
+    return env
 
 def sync(fh):
     """This make sure data is writter to disk."""
@@ -145,3 +140,12 @@ def to_csv(header, data, fpath, mode="w"):
             w.writerow(_row)
 
     print(f"data is writen to '{fpath}'")
+
+def dict2csv(output_dict, fpath):
+    with open(fpath, "w") as f:
+        writer = csv.writer(f, delimiter=',')
+        for k, v in output_dict.items():
+            v = [k] + v
+            writer.writerow(v)
+
+    print(f"data is written to '{fpath}'")

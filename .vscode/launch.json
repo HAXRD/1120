@@ -13,10 +13,20 @@
             "args": [
                 // 'pretrain_collect.py'
                 // 'pretrain_train.py'
-                "--scenario", "pattern", "--name_addon", "dev",
-                "--splits", "10", "10", "10", "--file_episode_limit", "5",
+                // 'pretrain_test.py'
+                // "--scenario", "pattern", "--name_addon", "dev",
+                // "--splits", "10", "10", "10", "--file_episode_limit", "5",
+                // "--seed", "0",
+                // "--n_BM", "100", "--collect_strategy", "third",
+
+                // 'eval_1_self_comparison.py'
+                "--scenario", "pattern",
+                "--name_addon", "dev",
                 "--seed", "0",
-                "--n_BM", "100", "--collect_strategy", "third"
+                "--n_BM", "100", "--num_eval_episodes", "3",
+                "--planning_batch_size", "32",
+                "--method", "map-elites",
+
 
                 // 'dev' debug pattern
                 // "--n_BM", "50", "--n_GU", "10", "--n_ABS", "3",

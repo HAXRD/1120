@@ -9,7 +9,6 @@ n_BM=100
 
 scenario=pattern
 name_addon=1_self_comparison
-collect_strategy=default
 
 # bak files
 cp -r results_${name_addon} results_${name_addon}_bak

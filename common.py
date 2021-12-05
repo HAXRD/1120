@@ -122,3 +122,26 @@ def get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
     return (
         GUs_fpaths, ABSs_fpaths, CGUs_fpaths
     )
+
+def to_csv(header, data, fpath, mode="w"):
+    """
+    Write data to csv.
+        e.g. header = ["id", "name", "gender"]
+             data = {
+                 "id":   [0, 1, 2],
+                 "name": ["Jack", "Peter", "May"],
+                 "gener": ["male", "male", "female"]
+             }
+    :param header: (list), a list of header names
+    :param data  : (dict), a dictionary whose keys are header names, values
+    are a list of values.
+    """
+
+    with open(fpath, mode) as f:
+        w = csv.writer(f)
+        w.writerow(header)
+        content = [data[hn] for hn in header]
+        for _row in zip(*content):
+            w.writerow(_row)
+
+    print(f"data is writen to '{fpath}'")

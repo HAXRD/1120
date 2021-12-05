@@ -98,3 +98,27 @@ def run_preparation():
         args,
         run_dir
     )
+
+def get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
+    """
+    Get all pattern files in given directory.
+    """
+
+    GUs_fpaths, ABSs_fpaths, CGUs_fpaths = [
+        sorted(glob(os.path.join(replay_dir, f"{prefix}_{pname}_*.npz")))
+        for pname in ["GUs", "ABSs", "CGUs"]
+    ]
+
+    if SHUFFLE_FILE_ORDER:
+        n_files = len(GUs_fpaths)
+        perm = np.arange(n_files)
+        np.random.shuffle(perm)
+
+        GUs_fpaths  = [GUs_fpaths[i]  for i in perm]
+        ABSs_fpaths = [ABSs_fpaths[i] for i in perm]
+        CGUs_fpaths = [CGUs_fpaths[i] for i in perm]
+        print(f"[pretrain | {prefix}] replay fpaths shuffled!")
+    print(f"[pretrain | {prefix}] get all {prefix} file paths.")
+    return (
+        GUs_fpaths, ABSs_fpaths, CGUs_fpaths
+    )

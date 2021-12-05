@@ -12,8 +12,9 @@
             "console": "integratedTerminal",
             "args": [
                 // 'pretrain_collect.py'
+                // 'pretrain_train.py'
                 "--scenario", "pattern", "--name_addon", "dev",
-                "--splits", "2", "2", "2",
+                "--splits", "10", "10", "10", "--file_episode_limit", "5",
                 "--seed", "0",
                 "--n_BM", "100", "--collect_strategy", "third"
 

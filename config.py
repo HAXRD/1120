@@ -171,7 +171,7 @@ def get_config():
     run_dir = Path(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         f"results{'' if args.name_addon == '' else '_' + args.name_addon}",
-        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}"
+        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}_{args.collect_strategy}"
     ))
     method = args.method
     collect_strategy = args.collect_strategy

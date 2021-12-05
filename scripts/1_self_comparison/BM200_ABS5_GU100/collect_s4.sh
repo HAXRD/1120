@@ -12,6 +12,8 @@ collect_strategy=default
 
 python pretrain_collect.py \
 --scenario ${scenario} --name_addon ${name_addon} \
---splits 100_000 5_000 500 \
+--splits 500 5_000 120_000 \
+--file_episode_limit 60_000 \
 --seed ${seed} \
 --n_BM ${n_BM}
+

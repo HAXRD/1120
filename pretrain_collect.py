@@ -44,12 +44,12 @@ def collect(args, env_type, RENDER="non-display"):
     env = make_env(args, TYPE=env_type)
 
     """Collect data"""
-    prefixs = ["train", "val", "test"]
+    prefixs = ["test", "val", "train"]
     for _split, _prefix in zip(splits, prefixs):
         idx = 0
         cur_episodes = _split
 
-        if _prefix in prefixs[-2:]:
+        if _prefix in prefixs[:2]:
             n = 2           # (1 random + 1 kmeans)
         else:
             if collect_strategy == "default":
@@ -69,8 +69,8 @@ def collect(args, env_type, RENDER="non-display"):
 
             for _episode in tqdm(range(episodes)):
 
-                if _prefix in prefixs[-2:] or \
-                    _prefix == prefixs[0] and collect_strategy == "default":
+                if _prefix in prefixs[:2] or \
+                    _prefix == prefixs[-1] and collect_strategy == "default":
 
                     # totally random
                     if _episode % num_episodes_per_trial == 0:
@@ -94,7 +94,7 @@ def collect(args, env_type, RENDER="non-display"):
                     P_ABSs[n * _episode + 1] = P_ABS
                     P_CGUs[n * _episode + 1] = P_CGU
 
-                elif _prefix == prefixs[0] and collect_strategy in ["half", "third"]:
+                elif _prefix == prefixs[-1] and collect_strategy in ["half", "third"]:
 
                     # totally random
                     if _episode % num_episodes_per_trial == 0:

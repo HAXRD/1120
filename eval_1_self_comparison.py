@@ -5,56 +5,13 @@ import os
 import torch
 import numpy as np
 import random
-import contextlib
 import time
 
 from pathlib import Path
 
-from eval_shared import pattern_procedure
+from eval_shared import eval_procedure
 from common import run_preparation, make_env, dict2csv, to_csv
 from runners.pattern import Runner
-
-@contextlib.contextmanager
-def temp_seed(seed):
-    npstate = np.random.get_state()
-    ranstate = random.getstate()
-    np.random.seed(seed)
-    random.seed(seed)
-    try:
-        yield
-    finally:
-        np.random.set_state(npstate)
-        random.setstate(ranstate)
-
-def eval_procedure(args, runner, RENDER):
-    """
-    Evaluation procedure.
-    """
-
-    print(f"[eval] start")
-
-    with temp_seed(args.seed + 20212021):
-
-        if args.scenario == "pattern":
-            episodes_CRs = pattern_procedure(args, runner, RENDER)
-        elif args.scenario == "precise":
-            pass
-
-        episodes_mean_CRs = np.mean(episodes_CRs, axis=1)
-        overall_mean_CR = np.mean(episodes_CRs)
-        print(f"----------------")
-        print(f"[eval | overall_mean_CR] {overall_mean_CR}")
-        print(f"----------------")
-
-    # convert to list
-    episodes_CRs = episodes_CRs.tolist()
-    episodes_mean_CRs = episodes_mean_CRs.tolist()
-
-    print(f"[eval] end")
-    return (
-        episodes_CRs, episodes_mean_CRs, overall_mean_CR
-    )
-
 
 if __name__ == "__main__":
     """

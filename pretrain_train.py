@@ -24,7 +24,7 @@ def train(args, writer, device):
     """Preparation"""
     # useful params
     run_dir = args.run_dir
-    epochs = args. num_emulator_epochs
+    epochs = args.num_emulator_epochs
 
     # dirs
     replay_dir = os.path.join(run_dir, "emulator_replays")

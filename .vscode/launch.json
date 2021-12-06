@@ -17,16 +17,26 @@
                 // "--scenario", "pattern", "--name_addon", "dev",
                 // "--splits", "10", "10", "10", "--file_episode_limit", "5",
                 // "--seed", "0",
-                // "--n_BM", "100", "--collect_strategy", "third",
+                // "--n_BM", "100", "--collect_strategy", "default",
 
                 // 'eval_1_self_comparison.py'
-                "--scenario", "pattern",
-                "--name_addon", "dev",
-                "--seed", "0",
-                "--n_BM", "100", "--num_eval_episodes", "3",
-                "--planning_batch_size", "32",
-                "--method", "map-elites",
+                // "--scenario", "pattern",
+                // "--name_addon", "dev",
+                // "--seed", "0",
+                // "--n_BM", "100", "--num_eval_episodes", "3",
+                // "--planning_batch_size", "32",
+                // "--method", "map-elites",
 
+                // 'eval_emulator.py'
+                // 'eval_3_adaptive_to_variable_entities.py'
+                "--scenario", "pattern",
+                "--name_addon", "dev_3",
+                "--seed", "0",
+                "--planning_batch_size", "32",
+                "--eval_emulator_fpath", "results_dev/BM100_ABS5_GU100_default/emulator_ckpts/best_emulator.pt",
+                "--num_eval_episodes", "5",
+                "--n_BM", "100", "--n_ABS", "4", "--n_GU", "80",
+                "--method", "naive-kmeans"
 
                 // 'dev' debug pattern
                 // "--n_BM", "50", "--n_GU", "10", "--n_ABS", "3",

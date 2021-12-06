@@ -159,6 +159,9 @@ def get_config():
 
     # pattern
 
+    # 3_adaptive_to_variable_entities
+    parser.add_argument("--eval_emulator_fpath", type=str,
+                        help="emulator file path for '3_adaptive_to_variable_entities.py' & 'eval_emulator.py' evaluation.")
 
     ####### additional parsing #######
     args = parser.parse_known_args()[0]

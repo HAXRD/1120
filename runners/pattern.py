@@ -143,8 +143,8 @@ class Runner(object):
         to naive_kmeans.
 
         :return: (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            return_planning_P_ABSs
         )
         """
 
@@ -183,18 +183,18 @@ class Runner(object):
             """Use planning to find believed top_k P_ABSs"""
             repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
 
-            _, top_k_P_ABSs, _, _ = self.plan(top_k, repeated_P_GUs, planning_P_ABSs)
-
+            sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
+            return_planning_P_ABSs = sorted_P_ABSs
         else:
-            top_k_P_ABSs = planning_P_ABSs
+            return_planning_P_ABSs = planning_P_ABSs
 
         end = time.time()
         self.logger.info(f"[runner | {self.method} | {end - start}s] done.")
 
-        batch_size = top_k_P_ABSs.shape[0]
+        top_k = min(top_k, return_planning_P_ABSs.shape[0])
         return (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            return_planning_P_ABSs
         )
 
     ############### map-elites ###############
@@ -237,12 +237,15 @@ class Runner(object):
 
         """Use planning"""
         repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
+        
+        sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
 
-        _, P_ABSs, _, CRs = self.plan(planning_size, repeated_P_GUs, planning_P_ABSs)
+        top_planning_size_P_ABSs = sorted_P_ABSs[:planning_size]
+        top_planning_size_rec_CRs = sorted_rec_CRs[:planning_size]
 
         return (
-            P_ABSs,
-            CRs
+            top_planning_size_P_ABSs,
+            top_planning_size_rec_CRs
         )
 
     def _map_x_to_b(self, x):
@@ -360,16 +363,21 @@ class Runner(object):
         """Use planning"""
         repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
 
-        _, P_ABSs, _, CRs = self.plan(planning_size, repeated_P_GUs, planning_P_ABSs)
+        sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
+
+        top_planning_size_P_ABSs = sorted_P_ABSs[:planning_size]
+        top_planning_size_rec_CRs = sorted_rec_CRs[:planning_size]
 
         return (
-            P_ABSs,
-            CRs
+            top_planning_size_P_ABSs,
+            top_planning_size_rec_CRs
         )
 
-    def _get_most_promising_solutions(self, top_k):
+    def _get_all_sorted_solutions(self):
         """
         Select top_k solutions from map
+        Get all solutions sorted (by emulator) from map
+
         :return solutions: (list), a list of P_ABSs
         """
 
@@ -383,10 +391,10 @@ class Runner(object):
         candidates_perfs = np.array(candidates_perfs)
         candidates_solus = np.array(candidates_solus)
 
-        sorted_indices = np.argsort(-candidates_perfs)[:top_k]
+        sorted_indices = np.argsort(-candidates_perfs)
         solutions = candidates_solus[sorted_indices]
 
-        self.logger.info(f"[runner | map-elites] found {len(solutions)} most promising solutions.")
+        self.logger.info(f"[runner | map-elites] found all {len(solutions)} solutions.")
         return solutions
 
     def map_elites(self, top_k, P_GU, iterations, n_sample_individuals):
@@ -410,7 +418,7 @@ class Runner(object):
         self._place_in_mapelites(P_ABSs, CRs)
 
         # tdqm: progress bar
-        
+
         for i in range(iterations):
             self.logger.debug(f"[runner | map-elites | ITERATION {i}]")
 
@@ -423,29 +431,30 @@ class Runner(object):
             self._place_in_mapelites(P_ABSs, CRs)
 
         # select top_k best performed P_ABSs
-        top_k_P_ABSs = self._get_most_promising_solutions(top_k)
+        all_P_ABSs = self._get_all_sorted_solutions()
 
         end = time.time()
         self.logger.info(f"[runner | {self.method} | {end - start}s] MAP-Elites done.")
 
-        batch_size = top_k_P_ABSs.shape[0]
+        top_k = min(top_k, all_P_ABSs.shape[0])
         return (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            all_P_ABSs
         )
 
     ############### planning ###############
-    def plan(self, top_k, repeated_P_GUs, planning_P_ABSs):
+    def plan(self, repeated_P_GUs, planning_P_ABSs):
         """
-        Use emulator to predict `P_rec_CGU`, then select `top_k` transitions.
+        Use emulator to predict `P_rec_CGU`, then sort transitions according
+        to CRs.
 
         :param repeated_P_GUs : (planning_size, K, K)
         :param planning_P_ABSs: (planning_size, K, K)
         :return: (
-            top_k_P_GUs,
-            top_k_P_ABSs,
-            top_k_P_CGUs,
-            top_k_CRs
+            sorted_P_GUs,
+            sorted_P_ABSs,
+            sorted_P_rec_CGUs,
+            sorted_rec_CRs
         )
         """
         K = self.K
@@ -473,16 +482,16 @@ class Runner(object):
 
         P_rec_CGUs = y_hats
         rec_CRs = np.sum(P_rec_CGUs.reshape(planning_size, -1), axis=-1) / self.env.world.n_ON_GU # (planning_size,)
-        top_k_idcs = np.argsort(-rec_CRs, axis=-1)[:top_k]
+        sorted_idcs = np.argsort(-rec_CRs, axis=-1)
 
-        top_k_P_GUs  = repeated_P_GUs[top_k_idcs]
-        top_k_P_ABSs = planning_P_ABSs[top_k_idcs]
-        top_k_P_rec_CGUs = P_rec_CGUs[top_k_idcs]
-        top_k_CRs = rec_CRs[top_k_idcs]
+        sorted_P_GUs  = repeated_P_GUs[sorted_idcs]
+        sorted_P_ABSs = planning_P_ABSs[sorted_idcs]
+        sorted_P_rec_CGUs = P_rec_CGUs[sorted_idcs]
+        sorted_rec_CRs = rec_CRs[sorted_idcs]
 
         return (
-            top_k_P_GUs,
-            top_k_P_ABSs,
-            top_k_P_rec_CGUs,
-            top_k_CRs
+            sorted_P_GUs,
+            sorted_P_ABSs,
+            sorted_P_rec_CGUs,
+            sorted_rec_CRs
         )

@@ -91,11 +91,12 @@ def pattern_procedure(args, runner, RENDER):
         # plan with different methods
         top_CR_info = ""
         if runner.method == "naive-kmeans":
-            batch_size, top_k_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, top_k, 0)
+            batch_size, all_planning_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, top_k, 0)
         elif runner.method == "mutation-kmeans":
-            batch_size, top_k_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, num_mutation_seeds, num_mutations_per_seed)
+            batch_size, all_planning_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, num_mutation_seeds, num_mutations_per_seed)
         elif runner.method == "map-elites":
-            batch_size, top_k_P_ABSs = runner.map_elites(top_k, P_GU, iterations, n_sample_individuals)
+            batch_size, all_planning_P_ABSs = runner.map_elites(top_k, P_GU, iterations, n_sample_individuals)
+        top_k_P_ABSs = all_planning_P_ABSs[:batch_size]
 
         # interact with env
         top_k_P_CGUs = np.zeros((batch_size, K, K), dtype=np.float32)

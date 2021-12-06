@@ -33,7 +33,7 @@ def eval_procedure(args, runner, RENDER):
     with temp_seed(args.seed + 20212021):
 
         if args.scenario == "pattern":
-            episodes_CRs = pattern_procedure(args, runner, RENDER)
+            episodes_CRs = _pattern_procedure(args, runner, RENDER)
         elif args.scenario == "precise":
             pass
 
@@ -52,7 +52,7 @@ def eval_procedure(args, runner, RENDER):
         episodes_CRs, episodes_mean_CRs, overall_mean_CR
     )
 
-def pattern_procedure(args, runner, RENDER):
+def _pattern_procedure(args, runner, RENDER):
     """
     :return episodes_CRs: shape=(episodes, n_step), contains each step's
     CR for every episode.
@@ -206,3 +206,100 @@ def test_emulator(args, device):
     return (
         mean_abs_elem_error, mean_abs_CR_error
     )
+
+def _justification_procedure(args, runner):
+    """
+    :return percentage_dict: {
+        "episode": episodes
+        "top_1": top_1_percentages,
+        "top_3": top_3_percentages,
+        "top_5": top_5_percentages,
+        "top_10": top_10_percentages,
+        "top_k": top_k_percentages
+    }
+    """
+
+    assert args.method in ["mutation-kmeans", "map-elites"]
+
+    # specs
+    episodes = args.num_eval_episodes
+    num_episodes_per_trial = args.num_episodes_per_trial
+    num_mutation_seeds = args.num_mutation_seeds
+    num_mutations_per_seed = args.num_mutations_per_seed
+    iterations = args.iterations
+    n_sample_individuals = args.num_sample_individuals
+    K = args.K
+    top_k = runner.top_k
+    render = args.render
+
+    def _compute_containing_top_x_percentage(sorted_idcs, top_x):
+        return np.sum((sorted_idcs < top_x).astype(np.float32)) / top_x
+
+    top_1_percentages = []
+    top_3_percentages = []
+    top_5_percentages = []
+    top_10_percentages = []
+    top_k_percentages = []
+
+    # start eval for pattern-style
+    for _episode in tqdm(range(episodes)):
+
+        # reset or walk
+        if _episode % num_episodes_per_trial == 0:
+            runner.env.reset()
+        else:
+            runner.env.walk()
+        runner.env.render(render)
+        P_GU = runner.env.get_P_GU()
+
+        # plan with different methods
+        if runner.method == "mutation-kmeans":
+            batch_size, all_planning_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, num_mutation_seeds, num_mutations_per_seed)
+        elif runner.method == "map-elites":
+            batch_size, all_planning_P_ABSs = runner.map_elites(top_k, P_GU, iterations, n_sample_individuals)
+
+        # interact with env with `all_planning_P_ABSs`
+        bz = all_planning_P_ABSs.shape[0]
+        all_P_CGUs = np.zeros((bz, K, K), dtype=np.float32)
+        for _idx, _P_ABS in enumerate(all_planning_P_ABSs):
+            runner.env.step(_P_ABS)
+            runner.env.render(render)
+            all_P_CGUs[_idx] = runner.env.get_P_CGU()
+
+        all_CRs = np.sum(all_P_CGUs.reshape(bz, -1), axis=1) / runner.env.world.n_ON_GU
+        sorted_idcs = np.argsort(-all_CRs, axis=-1)
+        sorted_top_k_idcs = sorted_idcs[:top_k]
+
+        top_1_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 1))
+        top_3_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 3))
+        top_5_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 5))
+        top_10_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 10))
+        top_k_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, top_k))
+
+    percentage_dict = {
+        "episode": list(range(episodes)),
+        "top_1": top_1_percentages,
+        "top_3": top_3_percentages,
+        "top_5": top_5_percentages,
+        "top_10": top_10_percentages,
+        "top_k": top_k_percentages
+    }
+
+    return percentage_dict
+
+
+def justification(args, runner):
+    """
+    Justification about how much percentage that the emulator predicted
+    `P_ABS`s are actually the top_x patterns.
+    """
+
+    print(f"[eval | justification] start")
+
+    with temp_seed(args.seed + 20212021):
+
+        assert args.scenario == "pattern"
+
+        percentage_dict = _justification_procedure(args, runner)
+
+    return percentage_dict

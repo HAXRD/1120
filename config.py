@@ -126,7 +126,7 @@ def get_config():
     parser.add_argument("--emulator_lr", type=float, default=1.e-4,
                         help="lr for emulator.")
     ## emulator φ params
-    parser.add_argument("--num_episodes_per_trial", default=20,
+    parser.add_argument("--num_episodes_per_trial", type=int, default=20,
                         help="# of episodes for each trial, between each trial, reset env.")
 
     ## planning methods

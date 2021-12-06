@@ -25,18 +25,34 @@
                 // "--seed", "0",
                 // "--n_BM", "100", "--num_eval_episodes", "3",
                 // "--planning_batch_size", "32",
+                // "--num_mutations_per_seed", "32",
+                // "--iterations", "32",
                 // "--method", "map-elites",
 
                 // 'eval_emulator.py'
                 // 'eval_3_adaptive_to_variable_entities.py'
+                // "--scenario", "pattern",
+                // "--name_addon", "dev_3",
+                // "--seed", "0",
+                // "--planning_batch_size", "32",
+                // "--eval_emulator_fpath", "results_dev/BM100_ABS5_GU100_default/emulator_ckpts/best_emulator.pt",
+                // "--num_eval_episodes", "5",
+                // "--n_BM", "100", "--n_ABS", "4", "--n_GU", "80",
+                // "--method", "naive-kmeans"
+
+                // 'eval_4_justification.py'
                 "--scenario", "pattern",
-                "--name_addon", "dev_3",
+                "--name_addon", "dev_4",
                 "--seed", "0",
                 "--planning_batch_size", "32",
+                "--num_mutations_per_seed", "32",
+                "--iterations", "32",
                 "--eval_emulator_fpath", "results_dev/BM100_ABS5_GU100_default/emulator_ckpts/best_emulator.pt",
-                "--num_eval_episodes", "5",
-                "--n_BM", "100", "--n_ABS", "4", "--n_GU", "80",
-                "--method", "naive-kmeans"
+                "--num_eval_episodes", "2",
+                "--num_episodes_per_trial", "1",
+                "--n_BM", "100",
+                "--method", "mutation-kmeans"
+
 
                 // 'dev' debug pattern
                 // "--n_BM", "50", "--n_GU", "10", "--n_ABS", "3",

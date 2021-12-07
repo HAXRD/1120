@@ -15,8 +15,6 @@ from tqdm import tqdm
 from envs.sse.SSE_env import SSEEnv
 from config import get_config
 
-
-
 def make_env(args, TYPE):
     assert TYPE in ["base", "train", "eval"]
     if TYPE == "base":

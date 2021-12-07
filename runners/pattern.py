@@ -62,6 +62,24 @@ def _t2n(x):
 def _n2t(x, device=torch.device('cpu')):
     return torch.FloatTensor(x).to(device)
 
+def binary_search(arr, x):
+    low = 0
+    high = len(arr) - 1
+    mid = 0
+
+    while low <= high:
+
+        mid = (low + high) // 2
+
+        if arr[mid] <= x:
+            if mid == len(arr) - 1:
+                return mid
+            if mid < len(arr) - 1 and x < arr[mid + 1]:
+                return mid
+            if x >= arr[mid + 1]:
+                low = mid + 1
+        elif x < arr[mid]:
+            high = mid
 
 class Runner(object):
     """
@@ -99,8 +117,39 @@ class Runner(object):
         self.L = self.args.L
 
         # map-elites
-        self.bin_means = [i for i in range(int(self.K * math.sqrt(2)))]
-        self.bin_stds  = [i for i in range(int(self.K * math.sqrt(2) / 2))]
+        # custom adjusted bin size
+        """
+        mean bins:
+            0~10,  bin_size = 10.
+            10~20, bin_size = 1.
+            20~30, bin_size = 0.5
+            30~40, bin_size = 0.25
+            40~50, bin_size = 0.5
+            50~60, bin_size = 1.
+            >60,   bin_size = inf
+        stds bins:
+            0~5,   bin_size = 0.5
+            5~15,  bin_size = 0.25
+            15~25, bin_size = 0.5
+            25~35, bin_size = 1.
+            35~45, bin_size = inf
+        """
+        def _gen_bins(start_val: float, end_val: float, bin_size=float('inf')):
+            if bin_size == float('inf'):
+                bin_size = end_val - start_val
+            return [(start_val + bin_size * i) for i in range(int((end_val - start_val) / bin_size))]
+        self.bin_means = _gen_bins(0, 10, 10.) + \
+                         _gen_bins(10, 20, 1.) + \
+                         _gen_bins(20, 30, 0.5) + \
+                         _gen_bins(30, 40, 0.25) + \
+                         _gen_bins(40, 50, 0.5) + \
+                         _gen_bins(50, 60, 1.) + \
+                         _gen_bins(60, 90)
+        self.bin_stds = _gen_bins(0, 5, 0.5) + \
+                        _gen_bins(5, 15, 0.25) + \
+                        _gen_bins(15, 25, 0.5) + \
+                        _gen_bins(25, 35, 1.) + \
+                        _gen_bins(35, 45)
 
         self.ft_bins = [len(self.bin_means), len(self.bin_stds)]
 
@@ -237,7 +286,7 @@ class Runner(object):
 
         """Use planning"""
         repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
-        
+
         sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
 
         top_planning_size_P_ABSs = sorted_P_ABSs[:planning_size]
@@ -278,8 +327,16 @@ class Runner(object):
 
         self.logger.info(f"[runner | map-elites] mean {mean}, std{std}")
 
-        i = int(np.clip(mean, self.bin_means[0], self.bin_means[-1] + 1))
-        j = int(np.clip(std, self.bin_stds[0], self.bin_stds[-1] + 1))
+        i = binary_search(self.bin_means, mean)
+        j = binary_search(self.bin_stds, std)
+
+        # do check
+        assert self.bin_means[i] <= mean
+        if i < len(self.bin_means) - 1:
+            mean < self.bin_means[i + 1]
+        assert self.bin_stds[j] <= std
+        if j < len(self.bin_stds) - 1:
+            std < self.bin_stds[j + 1]
 
         return (
             i, j

@@ -1,0 +1,302 @@
+Configuration completed.
+[runner | emulator load] loaded emulator from '/home/lyus/Desktop/haxrd/plots/2_BM200_half/results_2_sample_efficiency/BM200_ABS5_GU100_half/emulator_ckpts/best_emulator.pt'.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2827 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.300355911254883s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4112 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.173671007156372s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.8845787048339844s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.862609624862671s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4112 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.166376829147339s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.698699712753296s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.146291732788086s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3341 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.458465814590454s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.8694379329681396s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.135031223297119s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2531681060791016s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.7729392051696777s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.612884044647217s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1028 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.5297086238861084s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.250229597091675s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2827 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.036686897277832s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4626 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.550554513931274s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4626 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.726255655288696s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.7995784282684326s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.55256986618042s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.1268656253814697s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 514 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.0400278568267822s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3217451572418213s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.536763906478882s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.608797550201416s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1542 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.9402201175689697s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1285 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.7060580253601074s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.6847782135009766s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3341 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.4364306926727295s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.7822611331939697s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.8915774822235107s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4112 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.135380268096924s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.135862112045288s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2827 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.997631072998047s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3341 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.4492270946502686s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.2509045600891113s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.637079954147339s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.9022607803344727s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.8932149410247803s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.6628429889678955s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.7491610050201416s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.419539451599121s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.2724523544311523s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.263850450515747s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.1541149616241455s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1028 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.4921631813049316s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.4052984714508057s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1542 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.9621856212615967s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1542 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.9339473247528076s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.375159978866577s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4369 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.400690078735352s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.8586277961730957s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1799 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.131486654281616s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.8835184574127197s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2827 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.033217191696167s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3660876750946045s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3536946773529053s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1028 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.5148646831512451s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3581771850585938s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.8185157775878906s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2744700908660889s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 514 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.072554588317871s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1285 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.7325570583343506s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2374701499938965s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2546899318695068s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 514 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.0199358463287354s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2271404266357422s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2313 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.560281276702881s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1285 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.702697515487671s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 514 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.0487706661224365s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2742719650268555s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2451980113983154s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1028 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.467970371246338s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.688375234603882s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3341 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.449223279953003s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3424668312072754s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.363494873046875s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.952786922454834s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2894353866577148s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 1542 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.9690227508544922s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 6939 different P_ABSs for planning.
+[runner | mutation-kmeans | 6.628131151199341s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4883 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.79645848274231s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.2478044033050537s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.9073667526245117s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4626 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.572208881378174s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.26282000541687s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3084 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.2615468502044678s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2827 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.0369174480438232s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.8346590995788574s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.4006402492523193s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3978543281555176s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.7386319637298584s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4626 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.606970310211182s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3598 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.7962148189544678s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 4369 different P_ABSs for planning.
+[runner | mutation-kmeans | 4.382821321487427s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 3855 different P_ABSs for planning.
+[runner | mutation-kmeans | 3.954005002975464s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.2695236206054688s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2570 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.829054355621338s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 2056 different P_ABSs for planning.
+[runner | mutation-kmeans | 2.3933217525482178s] done.
+[runner | mutation-kmeans] start.
+[runner | mutation-kmeans] generate 771 different P_ABSs for planning.
+[runner | mutation-kmeans | 1.277233362197876s] done.

@@ -232,8 +232,15 @@ def _justification_procedure(args, runner):
     top_k = runner.top_k
     render = args.render
 
-    def _compute_containing_top_x_percentage(sorted_idcs, top_x):
-        return np.sum((sorted_idcs < top_x).astype(np.float32)) / top_x
+    # def _compute_containing_top_x_percentage(sorted_idcs, top_x):
+    #     return np.sum((sorted_idcs < top_x).astype(np.float32)) / top_x
+
+    def _compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_top_x_CRs, top_k):
+        cnter = 0.
+        for _cr in emulator_believed_top_k_CRs:
+            if _cr in ground_truth_top_x_CRs:
+                cnter += 1.
+        return cnter / top_k
 
     top_1_percentages = []
     top_3_percentages = []
@@ -266,15 +273,15 @@ def _justification_procedure(args, runner):
             runner.env.render(render)
             all_P_CGUs[_idx] = runner.env.get_P_CGU()
 
-        all_CRs = np.sum(all_P_CGUs.reshape(bz, -1), axis=1) / runner.env.world.n_ON_GU
-        sorted_idcs = np.argsort(-all_CRs, axis=-1)
-        sorted_top_k_idcs = sorted_idcs[:top_k]
+        all_CRs = np.sum(all_P_CGUs.reshape(bz, -1), axis=1) / runner.env.world.n_ON_GU     # sorted by emulator-believed order
+        emulator_believed_top_k_CRs = all_CRs[:top_k] # top_k emulator believed CRs
+        ground_truth_unique_top_k_CRs = sorted(list(set(all_CRs)), reverse=True)[:top_k] # top_k ground truth unique CRs
 
-        top_1_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 1))
-        top_3_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 3))
-        top_5_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 5))
-        top_10_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, 10))
-        top_k_percentages.append(_compute_containing_top_x_percentage(sorted_top_k_idcs, top_k))
+        top_1_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:1], top_k))
+        top_3_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:3], top_k))
+        top_5_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:5], top_k))
+        top_10_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:10], top_k))
+        top_k_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:top_k], top_k))
 
     percentage_dict = {
         "episode": list(range(episodes)),

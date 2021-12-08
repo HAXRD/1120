@@ -122,7 +122,7 @@ class SiteSpecificEnv(gym.Env):
 
         # create viewer
         if self.viewer == None:
-            self.viewer = rendering.Viewer(800, 800)
+            self.viewer = rendering.Viewer(500, 500)
         # create rendering geometries
         self.render_geoms = []
         self.render_geoms_xform = []

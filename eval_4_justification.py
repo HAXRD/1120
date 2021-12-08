@@ -69,11 +69,17 @@ if __name__ == "__main__":
         eval_runner.emulator_load(args.eval_emulator_fpath)
 
     # start eval
-    percentage_dict = justification(args, eval_runner)
+    raw_percentage_dict, percentage_dict = justification(args, eval_runner)
 
     timestamp = time.strftime('%m%d-%H%M%S')
 
-    # store to csv
+    # store raw to csv
+    header = [k for k, _ in raw_percentage_dict.items()]
+    data = raw_percentage_dict
+    top_x_raw_percentages_fpath = os.path.join(method_dir, f"top_x_raw_percentages_{timestamp}.csv")
+    to_csv(header, data, top_x_raw_percentages_fpath)
+
+    # store processed to csv
     header = [k for k, _ in percentage_dict.items()]
     data = percentage_dict
     top_x_percentages_fpath = os.path.join(method_dir, f"top_x_percentages_{timestamp}.csv")

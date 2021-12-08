@@ -107,7 +107,7 @@ def get_config():
     ####### pattern only #######
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
-                        help="either 'default' or 'half' or 'third'. For 'default', 1 episode will sample 2 replays, 'half' will sample 4 replays, 'third' will sample 6 replays.")
+                        help="either 'default' or 'half' or 'third' or 'variable'. For 'default', 1 episode will sample 2 replays, 'half' will sample 4 replays, 'third' will sample 6 replays.")
     parser.add_argument("--emulator_net_size", type=str, default="default",
                         help="AttentionUNet configuration for emulator.")
     parser.add_argument("--splits", type=int, nargs="+",
@@ -162,6 +162,10 @@ def get_config():
     # 3_adaptive_to_variable_entities
     parser.add_argument("--eval_emulator_fpath", type=str,
                         help="emulator file path for '3_adaptive_to_variable_entities.py' & 'eval_emulator.py' evaluation.")
+    parser.add_argument("--variable_n_ABS", action="store_true", default=False,
+                        help="toggle variable number of ABSs.")
+    parser.add_argument("--variable_n_GU", action="store_true", default=False,
+                        help="toggle variable number of GUs.")
 
     ####### additional parsing #######
     args = parser.parse_known_args()[0]
@@ -171,16 +175,29 @@ def get_config():
     BMs_fname = f"./terrains/terrain-{args.n_BM}.mat"
     n_step = args.n_step_explore + args.n_step_serve
     step_duration = args.episode_duration / n_step
+    
+    collect_strategy = args.collect_strategy
+    method = args.method
+    if args.scenario == "pattern":
+        assert collect_strategy in ["default", "half", 'third', "variable"]
+        assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
+
+    variable_n_ABS = args.variable_n_ABS
+    variable_n_GU = args.variable_n_GU
+
+    variable_addon = ""
+    if collect_strategy == "variable":
+        if variable_n_ABS:
+            variable_addon += "_var_ABS"
+        if variable_n_GU:
+            variable_addon += "_var_GU"
+
     run_dir = Path(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         f"results{'' if args.name_addon == '' else '_' + args.name_addon}",
-        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}_{args.collect_strategy}"
+        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}_{args.collect_strategy}{variable_addon}"
     ))
-    method = args.method
-    collect_strategy = args.collect_strategy
-    if args.scenario == "pattern":
-        assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
-        assert collect_strategy in ["default", "half", "third"]
+
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")
 

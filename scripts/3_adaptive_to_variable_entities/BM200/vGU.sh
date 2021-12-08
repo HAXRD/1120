@@ -9,7 +9,7 @@ scenario=pattern
 name_addon=3_adaptive_to_variable_entities_var_GU
 collect_strategy=default
 
-eval_emulator_fpath=results_3_adaptive_to_variable_entities/BM200_ABS5_GU200_default/emulator_ckpts/best_emulator.pt
+eval_emulator_fpath=results_3_adaptive_to_variable_entities/BM200_ABS5_GU200_variable_var_GU/emulator_ckpts/best_emulator.pt
 
 
 ############### emulator accuracy ################

@@ -134,3 +134,4 @@ dmypy.json
 *debug
 *.npz
 emulator-*.pt
+pretrain_tb

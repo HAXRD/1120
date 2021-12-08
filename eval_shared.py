@@ -7,6 +7,7 @@ import numpy as np
 import random
 import contextlib
 
+from copy import deepcopy
 from tqdm import tqdm
 
 from common import make_env
@@ -283,7 +284,7 @@ def _justification_procedure(args, runner):
         top_10_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:10], top_k))
         top_k_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:top_k], top_k))
 
-    percentage_dict = {
+    raw_percentage_dict = {
         "episode": list(range(episodes)),
         "top_1": top_1_percentages,
         "top_3": top_3_percentages,
@@ -292,7 +293,7 @@ def _justification_procedure(args, runner):
         "top_k": top_k_percentages
     }
 
-    return percentage_dict
+    return raw_percentage_dict
 
 
 def justification(args, runner):
@@ -301,12 +302,31 @@ def justification(args, runner):
     `P_ABS`s are actually the top_x patterns.
     """
 
+    def _process_raw(x):
+        if x > 0.:
+            return 1.
+        else:
+            return 0.
+
     print(f"[eval | justification] start")
 
     with temp_seed(args.seed + 20212021):
 
         assert args.scenario == "pattern"
 
-        percentage_dict = _justification_procedure(args, runner)
+        raw_percentage_dict = _justification_procedure(args, runner)
+        processed_percentage_dict = {}
 
-    return percentage_dict
+        for k, v in raw_percentage_dict.items():
+            processed_v = list(map(_process_raw, v))
+            processed_percentage_dict[k] = []
+            if k == "episode":
+                processed_percentage_dict[k] += ["mean"]
+            else:
+                processed_percentage_dict[k] += [np.mean(processed_v)]
+            processed_percentage_dict[k] += processed_v
+
+    return (
+        raw_percentage_dict,
+        processed_percentage_dict
+    )

@@ -213,6 +213,7 @@ def _justification_procedure(args, runner):
     :return percentage_dict: {
         "episode": episodes
         "top_1": top_1_percentages,
+        "top_2": top_2_percentages,
         "top_3": top_3_percentages,
         "top_5": top_5_percentages,
         "top_10": top_10_percentages,
@@ -244,6 +245,7 @@ def _justification_procedure(args, runner):
         return cnter / top_k
 
     top_1_percentages = []
+    top_2_percentages = []
     top_3_percentages = []
     top_5_percentages = []
     top_10_percentages = []
@@ -279,6 +281,7 @@ def _justification_procedure(args, runner):
         ground_truth_unique_top_k_CRs = sorted(list(set(all_CRs)), reverse=True)[:top_k] # top_k ground truth unique CRs
 
         top_1_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:1], top_k))
+        top_2_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:2], top_k))
         top_3_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:3], top_k))
         top_5_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:5], top_k))
         top_10_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:10], top_k))
@@ -287,6 +290,7 @@ def _justification_procedure(args, runner):
     raw_percentage_dict = {
         "episode": list(range(episodes)),
         "top_1": top_1_percentages,
+        "top_2": top_2_percentages,
         "top_3": top_3_percentages,
         "top_5": top_5_percentages,
         "top_10": top_10_percentages,

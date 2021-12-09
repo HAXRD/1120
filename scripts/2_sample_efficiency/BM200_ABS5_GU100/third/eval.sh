@@ -17,7 +17,7 @@ do
     python eval_1_self_comparison.py \
     --scenario ${scenario} --name_addon ${name_addon} \
     --collect_strategy ${collect_strategy} \
-    --splits 500 5_000 40_000 \
+    --splits 600 6_000 40_000 \
     --file_episode_limit 20_000 \
     --seed ${seed} \
     --n_BM ${n_BM} \

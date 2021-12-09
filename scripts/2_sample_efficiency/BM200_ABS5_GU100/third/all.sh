@@ -17,7 +17,7 @@ done
 ./scripts/2_sample_efficiency/BM200_ABS5_GU100/third/train.sh
 
 # run test.sh
-./scripts/2_sample_efficiency/BM200_ABS5_GU100/third/test.sh
+# ./scripts/2_sample_efficiency/BM200_ABS5_GU100/third/test.sh
 
 # run eval.sh
-./scripts/2_sample_efficiency/BM200_ABS5_GU100/third/eval.sh
+# ./scripts/2_sample_efficiency/BM200_ABS5_GU100/third/eval.sh

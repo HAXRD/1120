@@ -17,7 +17,7 @@ done
 ./scripts/1_self_comparison/BM400_ABS5_GU100/train.sh
 
 # run test.sh
-./scripts/1_self_comparison/BM400_ABS5_GU100/test.sh
+# ./scripts/1_self_comparison/BM400_ABS5_GU100/test.sh
 
 # run eval.sh
-./scripts/1_self_comparison/BM400_ABS5_GU100/eval.sh
+# ./scripts/1_self_comparison/BM400_ABS5_GU100/eval.sh

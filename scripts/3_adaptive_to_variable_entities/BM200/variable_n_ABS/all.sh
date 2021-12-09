@@ -17,5 +17,5 @@ done
 ./scripts/3_adaptive_to_variable_entities/BM200/variable_n_ABS/train.sh
 
 # run test.sh
-./scripts/3_adaptive_to_variable_entities/BM200/variable_n_ABS/test.sh
+# ./scripts/3_adaptive_to_variable_entities/BM200/variable_n_ABS/test.sh
 

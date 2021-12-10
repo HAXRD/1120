@@ -18,7 +18,7 @@ import random
 
 from pathlib import Path
 
-from common import run_preparation, make_env, to_csv
+from common import run_preparation, make_env
 from runners.pattern import Runner
 from eval_shared import justification
 
@@ -69,18 +69,21 @@ if __name__ == "__main__":
         eval_runner.emulator_load(args.eval_emulator_fpath)
 
     # start eval
-    raw_percentage_dict, percentage_dict = justification(args, eval_runner)
+    df, df_processed, mean_df_processed = justification(args, eval_runner)
 
     timestamp = time.strftime('%m%d-%H%M%S')
 
-    # store raw to csv
-    header = [k for k, _ in raw_percentage_dict.items()]
-    data = raw_percentage_dict
-    top_x_raw_percentages_fpath = os.path.join(method_dir, f"top_x_raw_percentages_{timestamp}.csv")
-    to_csv(header, data, top_x_raw_percentages_fpath)
+    # store raw dataframe
+    raw_fpath = os.path.join(method_dir, f"raw_top_x_percentages_{timestamp}.csv")
+    df.to_csv(raw_fpath, index=False)
+    print(f"dataframe saved to '{raw_fpath}'")
 
-    # store processed to csv
-    header = [k for k, _ in percentage_dict.items()]
-    data = percentage_dict
-    top_x_percentages_fpath = os.path.join(method_dir, f"top_x_percentages_{timestamp}.csv")
-    to_csv(header, data, top_x_percentages_fpath)
+    # store processed dataframe
+    processed_fpath = os.path.join(method_dir, f"processed_top_x_percentages_{timestamp}.csv")
+    df_processed.to_csv(processed_fpath, index=False)
+    print(f"dataframe saved to '{processed_fpath}'")
+
+    # store mean dataframe
+    mean_processed_fpath = os.path.join(method_dir, f"mean_processed_top_x_percentages_{timestamp}.csv")
+    mean_df_processed.to_csv(mean_processed_fpath, index=False)
+    print(f"dataframe saved to '{mean_processed_fpath}'")

@@ -13,7 +13,7 @@ import torch
 import numpy as np
 import random
 
-from common import run_preparation, make_env, to_csv
+from common import run_preparation, make_env
 from eval_shared import test_emulator
 
 if __name__ == "__main__":
@@ -42,14 +42,16 @@ if __name__ == "__main__":
     # env
     eval_env = make_env(args, "eval")
 
-    mean_abs_elem_error, mean_abs_CR_error = test_emulator(args, device)
+    df, mean_df = test_emulator(args, device)
 
-    test_result_fpath = os.path.join(run_dir, f"test_emulator_error_{time.strftime('%m%d-%H%M%S')}.csv")
+    timestamp = time.strftime('%m%d-%H%M%S')
 
-    # write to csv
-    header = ["mean_abs_elem_error", "mean_abs_CR_error"]
-    data = {
-        "mean_abs_elem_error": [mean_abs_elem_error],
-        "mean_abs_CR_error": [mean_abs_CR_error]
-    }
-    to_csv(header, data, test_result_fpath)
+    # store dataframe
+    raw_fpath = os.path.join(run_dir, f"raw_emulator_metrics_{timestamp}.csv")
+    df.to_csv(raw_fpath, index=False)
+    print(f"dataframe saved to '{raw_fpath}'")
+
+    # store mean dataframe
+    mean_fpath = os.path.join(run_dir, f"mean_emulator_metrics_{timestamp}.csv")
+    mean_df.to_csv(mean_fpath, index=False)
+    print(f"dataframe saved to '{mean_fpath}'")

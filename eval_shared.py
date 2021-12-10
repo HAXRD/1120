@@ -4,10 +4,10 @@
 import time
 import torch
 import numpy as np
+import pandas as pd
 import random
 import contextlib
 
-from copy import deepcopy
 from tqdm import tqdm
 
 from common import make_env
@@ -38,19 +38,32 @@ def eval_procedure(args, runner, RENDER):
         elif args.scenario == "precise":
             pass
 
-        episodes_mean_CRs = np.mean(episodes_CRs, axis=1)
-        overall_mean_CR = np.mean(episodes_CRs)
-        print(f"----------------")
-        print(f"[eval | overall_mean_CR] {overall_mean_CR}")
-        print(f"----------------")
+        n_episode, n_step = episodes_CRs.shape
 
-    # convert to list
-    episodes_CRs = episodes_CRs.tolist()
-    episodes_mean_CRs = episodes_mean_CRs.tolist()
+        df = pd.DataFrame({
+            "Episode": np.arange(n_episode).reshape(-1, 1).repeat(n_step, axis=1).reshape(-1).tolist(),
+            "Step":    np.arange(n_step).reshape(1, -1).repeat(n_episode, axis=0).reshape(-1).tolist(),
+            "CR":      episodes_CRs.reshape(-1).tolist(),
+        })
+        # We use string to store integer to avoid displaying issue on x-axis
+        df["n_BM"]  = str(args.n_BM)
+        df["n_ABS"] = str(args.n_ABS)
+        df["n_GU"]  = str(args.n_GU)
+        df["Collect Strategy"] = args.collect_strategy
+        df["Method"] = args.method
+        df["Explore:Serve"] = f"{args.n_step_explore:2d}:{args.n_step_serve:2d}"
+
+        mean_df = pd.DataFrame({
+            "CR": df["CR"].mean()
+        }, index=["mean"])
+
+        print(f"----------------")
+        print(mean_df)
+        print(f"----------------")
 
     print(f"[eval] end")
     return (
-        episodes_CRs, episodes_mean_CRs, overall_mean_CR
+        df, mean_df
     )
 
 def _pattern_procedure(args, runner, RENDER):
@@ -125,11 +138,6 @@ def test_emulator(args, device):
     """
     Load emulator ckpt from `args.eval_emulator_fpath`, then
     compare `P_CGU` and `P_rec_CGU` to get errors.
-
-    :return: (
-        mean_abs_elem_error: (float),
-        mean_abs_CR_error:   (float)
-    )
     """
 
     """Preparation"""
@@ -157,23 +165,22 @@ def test_emulator(args, device):
 
         P_rec_CGUs = emulator.model.predict(P_GUs, P_ABSs)
 
-        pred_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
-        print(f"\Sum|P_rec_CGUs - P_CGUs| = {pred_error}")
+        abs_elem_wise_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
+        print(f"\Sum|P_rec_CGUs - P_CGUs| = {abs_elem_wise_error}")
 
         CR = torch.sum(P_CGUs) / torch.sum(P_GUs)
         pCR = torch.sum(P_rec_CGUs) / torch.sum(P_GUs)
 
-        pred_CR_error = torch.sum(torch.abs(pCR - CR)).cpu().numpy()
-        print(f"|{pCR} - {CR}| == {pred_CR_error}")
+        abs_CR_error = torch.sum(torch.abs(pCR - CR)).cpu().numpy()
+        print(f"|{pCR} - {CR}| == {abs_CR_error}")
 
         return (
-            pred_error, pred_CR_error
+            abs_elem_wise_error, abs_CR_error
         )
 
     """Start interaction to get transitions to compare on live"""
-    total_size = 0
-    total_abs_elem_error = 0
-    total_abs_CR_error = 0
+    abs_elem_wise_errors = []
+    abs_CR_errors = []
     for _episode in tqdm(range(episodes)):
 
         # totally random
@@ -184,10 +191,9 @@ def test_emulator(args, device):
         env.render(render)
 
         P_GU, P_ABS, P_CGU = env.get_all_Ps()
-        pred_error, pred_CR_error = _compute_metrics(P_GU, P_ABS, P_CGU)
-        total_abs_elem_error += pred_error
-        total_abs_CR_error += pred_CR_error
-        total_size += 1
+        abs_elem_wise_error, abs_CR_error = _compute_metrics(P_GU, P_ABS, P_CGU)
+        abs_elem_wise_errors.append(abs_elem_wise_error)
+        abs_CR_errors.append(abs_CR_error)
 
         # kmeans
         kmeans_P_ABS = env.find_KMEANS_P_ABS()
@@ -195,30 +201,37 @@ def test_emulator(args, device):
         env.render(render)
 
         P_GU, P_ABS, P_CGU = env.get_all_Ps()
-        pred_error, pred_CR_error = _compute_metrics(P_GU, P_ABS, P_CGU)
-        total_abs_elem_error += pred_error
-        total_abs_CR_error += pred_CR_error
-        total_size += 1
+        abs_elem_wise_error, abs_CR_error = _compute_metrics(P_GU, P_ABS, P_CGU)
+        abs_elem_wise_errors.append(abs_elem_wise_error)
+        abs_CR_errors.append(abs_CR_error)
 
-    mean_abs_elem_error = total_abs_elem_error / total_size
-    mean_abs_CR_error = total_abs_CR_error / total_size
+    df = pd.DataFrame({
+        "Absolute Elem-wise Error": abs_elem_wise_errors,
+        "Absolute CR Error": abs_CR_errors
+    })
+    df["n_BM"] = str(args.n_BM)
+    df["n_ABS"] = str(args.n_ABS)
+    df["n_GU"] = str(args.n_GU)
+    df["Collect Strategy"] = args.collect_strategy
+    df["Method"] = args.method
+    df["Explore:Serve"] = f"{args.n_step_explore:2d}:{args.n_step_serve:2d}"
 
-    print(f"mean_abs_elem_error: {mean_abs_elem_error}, mean_abs_CR_error: {mean_abs_CR_error}")
+    mean_df = pd.DataFrame({
+        "Absolute Elem-wise Error": df["Absolute Elem-wise Error"].mean(),
+        "Absolute CR Error": df["Absolute CR Error"].mean()
+    }, index=["mean"])
+
+    print(f"------------")
+    print(f"{mean_df}")
+    print(f"------------")
+
     return (
-        mean_abs_elem_error, mean_abs_CR_error
+        df, mean_df
     )
 
 def _justification_procedure(args, runner):
     """
-    :return percentage_dict: {
-        "episode": episodes
-        "top_1": top_1_percentages,
-        "top_2": top_2_percentages,
-        "top_3": top_3_percentages,
-        "top_5": top_5_percentages,
-        "top_10": top_10_percentages,
-        "top_k": top_k_percentages
-    }
+    :return: df
     """
 
     assert args.method in ["mutation-kmeans", "map-elites"]
@@ -287,17 +300,46 @@ def _justification_procedure(args, runner):
         top_10_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:10], top_k))
         top_k_percentages.append(_compute_containing_top_x_percentage(emulator_believed_top_k_CRs, ground_truth_unique_top_k_CRs[:top_k], top_k))
 
-    raw_percentage_dict = {
-        "episode": list(range(episodes)),
-        "top_1": top_1_percentages,
-        "top_2": top_2_percentages,
-        "top_3": top_3_percentages,
-        "top_5": top_5_percentages,
-        "top_10": top_10_percentages,
-        "top_k": top_k_percentages
-    }
+    df = pd.DataFrame({
+        "Episode": list(range(episodes)),
+        "Top 1": top_1_percentages,
+        "Top 2": top_2_percentages,
+        "Top 3": top_3_percentages,
+        "Top 5": top_5_percentages,
+        "Top 10": top_10_percentages,
+        "Top k": top_k_percentages
+    })
+    df["n_BM"] = str(args.n_BM)
+    df["n_ABS"] = str(args.n_ABS)
+    df["n_GU"] = str(args.n_GU)
+    df["Collect Strategy"] = args.collect_strategy
+    df["Method"] = args.method
+    df["Explore:Serve"] = f"{args.n_step_explore:2d}:{args.n_step_serve:2d}"
 
-    return raw_percentage_dict
+    df_processed = df.copy()
+    df_processed["Top 1"] = (df_processed["Top 1"] > 0.).astype(float)
+    df_processed["Top 2"] = (df_processed["Top 2"] > 0.).astype(float)
+    df_processed["Top 3"] = (df_processed["Top 3"] > 0.).astype(float)
+    df_processed["Top 5"] = (df_processed["Top 5"] > 0.).astype(float)
+    df_processed["Top 10"] = (df_processed["Top 10"] > 0.).astype(float)
+    df_processed["Top k"] = (df_processed["Top k"] > 0.).astype(float)
+
+    mean_df_processed = pd.DataFrame({
+        "Top 1": df_processed["Top 1"].mean(),
+        "Top 2": df_processed["Top 2"].mean(),
+        "Top 3": df_processed["Top 3"].mean(),
+        "Top 5": df_processed["Top 5"].mean(),
+        "Top 10": df_processed["Top 10"].mean(),
+        "Top k": df_processed["Top k"].mean()
+    }, index=["mean"])
+
+    print(f"------------------")
+    print(mean_df_processed)
+    print(f"------------------")
+
+    return (
+        df, df_processed, mean_df_processed
+    )
 
 
 def justification(args, runner):
@@ -306,31 +348,16 @@ def justification(args, runner):
     `P_ABS`s are actually the top_x patterns.
     """
 
-    def _process_raw(x):
-        if x > 0.:
-            return 1.
-        else:
-            return 0.
-
     print(f"[eval | justification] start")
 
     with temp_seed(args.seed + 20212021):
 
         assert args.scenario == "pattern"
 
-        raw_percentage_dict = _justification_procedure(args, runner)
-        processed_percentage_dict = {}
+        df, df_processed, mean_df_processed = _justification_procedure(args, runner)
 
-        for k, v in raw_percentage_dict.items():
-            processed_v = list(map(_process_raw, v))
-            processed_percentage_dict[k] = []
-            if k == "episode":
-                processed_percentage_dict[k] += ["mean"]
-            else:
-                processed_percentage_dict[k] += [np.mean(processed_v)]
-            processed_percentage_dict[k] += processed_v
+    print(f"[eval | justification] end")
 
     return (
-        raw_percentage_dict,
-        processed_percentage_dict
+        df, df_processed, mean_df_processed
     )

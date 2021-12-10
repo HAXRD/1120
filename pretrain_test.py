@@ -4,12 +4,13 @@
 import os
 import torch
 import numpy as np
+import pandas as pd
 import random
 import time
 
 from torch.utils.data import DataLoader
 
-from common import get_replay_fpaths, run_preparation, to_csv
+from common import get_replay_fpaths, run_preparation
 from algorithms.emulator import Emulator
 from replays.pattern.replay import UniformReplay
 
@@ -43,9 +44,10 @@ def test(args, device):
     emulator.model.load_state_dict(emulator_state_dict)
     print(f"[pretrain | test] loaded ckpt from '{best_emulator_fpath}'.")
 
+
+    abs_elem_wise_errors = []
+    abs_CR_errors = []
     total_test_size = 0
-    total_abs_elem_error = 0
-    total_abs_CR_error = 0
     pin_memory = not (device == torch.device("cpu"))
     for _fpaths in zip(*test_list_of_fpaths):
 
@@ -62,23 +64,39 @@ def test(args, device):
 
             P_rec_CGUs = emulator.model.predict(P_GUs, P_ABSs)
 
-            pred_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
-            total_abs_elem_error += pred_error
-            print(f"\Sum|P_rec_CGUs - P_CGUs| = {pred_error}")
+            abs_elem_wise_error = torch.sum(torch.abs(P_rec_CGUs - P_CGUs)).cpu().numpy()
 
             CR = torch.sum(P_CGUs) / torch.sum(P_GUs)
             pCR = torch.sum(P_rec_CGUs) / torch.sum(P_GUs)
+            abs_CR_error = torch.sum(torch.abs(pCR - CR)).cpu().numpy()
 
-            pred_CR_error = torch.sum(torch.abs(pCR - CR)).cpu().numpy()
-            total_abs_CR_error += pred_CR_error
-            print(f"|{pCR} - {CR}| == {pred_CR_error}")
+            print(f"\Sum|P_rec_CGUs - P_CGUs| = {abs_elem_wise_error}")
+            print(f"|{pCR} - {CR}| == {abs_CR_error}")
 
-    mean_abs_elem_error = total_abs_elem_error / total_test_size
-    mean_abs_CR_error = total_abs_CR_error / total_test_size
+            abs_elem_wise_errors.append(abs_elem_wise_error)
+            abs_CR_errors.append(abs_CR_error)
 
-    print(f"mean_abs_elem_error: {mean_abs_elem_error}, mean_abs_CR_error: {mean_abs_CR_error}")
+    df = pd.DataFrame({
+        "Absolute Elem-wise Error": abs_elem_wise_errors,
+        "Absolute CR Error": abs_CR_errors
+    })
+    df["n_BM"] = str(args.n_BM)
+    df["n_ABS"] = str(args.n_ABS)
+    df["n_GU"] = str(args.n_GU)
+    df["Collect Strategy"] = args.collect_strategy
+    df["Method"] = args.method
+
+    mean_df = pd.DataFrame({
+        "Absolute Elem-wise Error": df["Absolute Elem-wise Error"].mean(),
+        "Absolute CR Error": df["Absolute CR Error"].mean()
+    }, index=["mean"])
+
+    print(f"----------")
+    print(f"{mean_df}")
+    print(f"----------")
+    
     return (
-        mean_abs_elem_error, mean_abs_CR_error
+        df, mean_df
     )
 
 if __name__ == "__main__":
@@ -104,14 +122,16 @@ if __name__ == "__main__":
     np.random.seed(args.seed)
     random.seed(args.seed)
 
-    mean_abs_elem_error, mean_abs_CR_error = test(args, device)
+    df, mean_df = test(args, device)
 
-    testset_result_fpath = os.path.join(run_dir, f"test_error_{time.strftime('%m%d-%H%M%S')}.csv")
+    timestamp = time.strftime('%m%d-%H%M%S')
 
-    # write to csv
-    header = ["mean_abs_elem_error", "mean_abs_CR_error"]
-    data = {
-        "mean_abs_elem_error": [mean_abs_elem_error],
-        "mean_abs_CR_error": [mean_abs_CR_error]
-    }
-    to_csv(header, data, testset_result_fpath)
+    # store raw
+    raw_fpath = os.path.join(run_dir, f"raw_test_set_errors_{timestamp}.csv")
+    df.to_csv(raw_fpath, index=False)
+    print(f"dataframe saved to '{raw_fpath}'")
+
+    # store mean
+    mean_fpath = os.path.join(run_dir, f"mean_test_set_errors_{timestamp}.csv")
+    mean_df.to_csv(mean_fpath, index=False)
+    print(f"dataframe saved to '{mean_fpath}'")

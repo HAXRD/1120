@@ -14,7 +14,7 @@ import random
 
 from pathlib import Path
 
-from common import run_preparation, make_env, dict2csv, to_csv
+from common import run_preparation, make_env
 from runners.pattern import Runner
 from eval_shared import eval_procedure
 
@@ -64,31 +64,18 @@ if __name__ == "__main__":
     # load best emulator ckpt
     if args.method in ["mutation-kmeans", "map-elites"]:
         eval_runner.emulator_load(args.eval_emulator_fpath)
-    
+
     # start eval
-    episodes_CRs, episodes_mean_CRs, overall_mean_CR = eval_procedure(args, eval_runner, args.render)
+    df, mean_df = eval_procedure(args, eval_runner, args.render)
 
     timestamp = time.strftime('%m%d-%H%M%S')
 
-    # store overall_mean_CR
-    raw_dict = {
-        "overall_mean_CR": [overall_mean_CR]
-    }
-    raw_fpath = os.path.join(method_dir, f"overall_mean_CR_{timestamp}.csv")
-    dict2csv(raw_dict, raw_fpath)
+    # store dataframe
+    raw_fpath = os.path.join(method_dir, f"raw_CRs_{timestamp}.csv")
+    df.to_csv(raw_fpath, index=False)
+    print(f"dataframe saved to '{raw_fpath}'")
 
-    # store episodes_CRs
-    raw_dict = {
-        "episodes_CRs": episodes_CRs
-    }
-    raw_fpath = os.path.join(method_dir, f"episodes_CRs_{timestamp}.csv")
-    dict2csv(raw_dict, raw_fpath)
-
-    # store expisodes_means_CRs
-    header = ["episode", "mean_CR"]
-    data = {
-        "episode": range(len(episodes_mean_CRs)),
-        "mean_CR": episodes_mean_CRs
-    }
-    episodes_mean_CRs_fpath = os.path.join(method_dir, f"episodes_mean_CRs_{timestamp}.csv")
-    to_csv(header, data, episodes_mean_CRs_fpath)
+    # store mean dataframe
+    mean_fpath = os.path.join(method_dir, f"mean_CR_{timestamp}.csv")
+    mean_df.to_csv(mean_fpath, index=False)
+    print(f"dataframe saved to '{mean_fpath}'")

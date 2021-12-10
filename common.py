@@ -5,7 +5,7 @@ import os
 import torch
 import numpy as np
 import random
-import csv
+import pickle
 
 from pprint import pprint
 from pathlib import Path
@@ -65,6 +65,15 @@ def load_n_copy(replay, replay_dir, prefix):
         replay.paste(data)
         del data
 
+def dict2pkl(output_dict, pkl_fpath):
+    with open(pkl_fpath, "wb") as f:
+        pickle.dump(output_dict, f)
+
+def pkl2dict(pkl_fpath):
+    with open(pkl_fpath, "rb") as f:
+        loaded_dict = pickle.load(f)
+    return loaded_dict
+
 def run_preparation():
     """
     Shared code snippet across all simulation related code.
@@ -115,35 +124,3 @@ def get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
     return (
         GUs_fpaths, ABSs_fpaths, CGUs_fpaths
     )
-
-def to_csv(header, data, fpath, mode="w"):
-    """
-    Write data to csv.
-        e.g. header = ["id", "name", "gender"]
-             data = {
-                 "id":   [0, 1, 2],
-                 "name": ["Jack", "Peter", "May"],
-                 "gener": ["male", "male", "female"]
-             }
-    :param header: (list), a list of header names
-    :param data  : (dict), a dictionary whose keys are header names, values
-    are a list of values.
-    """
-
-    with open(fpath, mode) as f:
-        w = csv.writer(f)
-        w.writerow(header)
-        content = [data[hn] for hn in header]
-        for _row in zip(*content):
-            w.writerow(_row)
-
-    print(f"data is writen to '{fpath}'")
-
-def dict2csv(output_dict, fpath):
-    with open(fpath, "w") as f:
-        writer = csv.writer(f, delimiter=',')
-        for k, v in output_dict.items():
-            v = [k] + v
-            writer.writerow(v)
-
-    print(f"data is written to '{fpath}'")

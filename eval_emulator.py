@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # get specs
     args, run_dir = run_preparation()
-    print(f"[pretrain | collect] running dir is {str(run_dir)}")
+    print(f"[eval emulator] running dir is {str(run_dir)}")
 
     # cuda
     torch.set_num_threads(1)

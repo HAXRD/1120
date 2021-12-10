@@ -33,7 +33,9 @@ class SiteSpecificEnv(gym.Env):
                  get_rewards_callback=None,
                  get_costs_callback=None,
                  sample_actions_callback=None,
-                 get_action_filters_callback=None
+                 get_action_filters_callback=None,
+
+                 get_entities_statuses_callback=None
                  ):
 
         assert isinstance(world, World)
@@ -53,12 +55,15 @@ class SiteSpecificEnv(gym.Env):
         self.get_P_ABS_with_augmentation_callback = get_P_ABS_with_augmentation_callback
         self.get_P_CGU_with_augmentation_callback = get_P_CGU_with_augmentation_callback
 
+
         self.get_states_callback = get_states_callback
         self.get_rewards_callback = get_rewards_callback
         self.get_costs_callback = get_costs_callback
         self.sample_actions_callback = sample_actions_callback
         self.get_action_filters_callback = get_action_filters_callback
 
+        self.get_entities_statuses_callback = get_entities_statuses_callback
+        
         # rendering
         self.cam_range = 1.2 * self.world.world_len
         self.viewer = None
@@ -249,3 +254,6 @@ class SiteSpecificEnv(gym.Env):
     ############### utils methods ###############
     def find_KMEANS_P_ABS(self, seed=0):
         return self.find_KMEANS_P_ABS_callback(self.world, seed)
+
+    def get_entities_statuses(self):
+        return self.get_entities_statuses_callback(self.world)

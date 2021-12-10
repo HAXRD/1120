@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CUDA_VISIBLE_DEVICES=2
+CUDA_VISIBLE_DEVICES=0
 seed=0
 
 n_BM=200

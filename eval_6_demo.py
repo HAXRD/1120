@@ -2,8 +2,8 @@
 # All rights reserved.
 
 """
-Create eval env to perform a certain method for 2 episodes,
-store only the 2 collections of information of entities 
+Create an eval env to perform a certain method for 2 episodes,
+store only the 2 collections of information of entities
     1. before the 2nd episode start, i,e, GUs walked, but the algorithm
     hasn't tracked;
     2. after the algorithm found its best solution and dispatched

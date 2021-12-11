@@ -15,6 +15,25 @@ from tqdm import tqdm
 from envs.sse.SSE_env import SSEEnv
 from config import get_config
 
+def binary_search(arr, x):
+    low = 0
+    high = len(arr) - 1
+    mid = 0
+
+    while low <= high:
+
+        mid = (low + high) // 2
+
+        if arr[mid] <= x:
+            if mid == len(arr) - 1:
+                return mid
+            if mid < len(arr) - 1 and x < arr[mid + 1]:
+                return mid
+            if x >= arr[mid + 1]:
+                low = mid + 1
+        elif x < arr[mid]:
+            high = mid
+
 def make_env(args, TYPE):
     assert TYPE in ["base", "train", "eval"]
     if TYPE == "base":

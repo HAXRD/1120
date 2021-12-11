@@ -8,11 +8,14 @@ import numpy as np
 import random
 import torch
 import logging
+
 from pathlib import Path
 from numpy.random import default_rng
 from pprint import pprint
 from tqdm import tqdm
 from scipy.spatial import distance
+
+from common import binary_search
 
 def generate_1_sequence(size, MAX):
     rng = default_rng()
@@ -61,25 +64,6 @@ def _t2n(x):
 
 def _n2t(x, device=torch.device('cpu')):
     return torch.FloatTensor(x).to(device)
-
-def binary_search(arr, x):
-    low = 0
-    high = len(arr) - 1
-    mid = 0
-
-    while low <= high:
-
-        mid = (low + high) // 2
-
-        if arr[mid] <= x:
-            if mid == len(arr) - 1:
-                return mid
-            if mid < len(arr) - 1 and x < arr[mid + 1]:
-                return mid
-            if x >= arr[mid + 1]:
-                low = mid + 1
-        elif x < arr[mid]:
-            high = mid
 
 class Runner(object):
     """
@@ -333,10 +317,10 @@ class Runner(object):
         # do check
         assert self.bin_means[i] <= mean
         if i < len(self.bin_means) - 1:
-            mean < self.bin_means[i + 1]
+            assert mean < self.bin_means[i + 1]
         assert self.bin_stds[j] <= std
         if j < len(self.bin_stds) - 1:
-            std < self.bin_stds[j + 1]
+            assert std < self.bin_stds[j + 1]
 
         return (
             i, j

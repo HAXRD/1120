@@ -20,7 +20,7 @@ do
     python eval_6_demo.py \
     --scenario ${scenario} --name_addon ${name_addon} \
     --collect_strategy ${collect_strategy} \
-    --splits 600 6_000, 120_000 \
+    --splits 600 6_000 120_000 \
     --file_episode_limit 60_000 \
     --seed ${seed} \
     --eval_emulator_fpath ${eval_emulator_fpath} \

@@ -24,6 +24,8 @@ from eval_shared import temp_seed
 def _heatmap_procedure(args, runner):
     """
     :return: (
+        bin_means,
+        bin_stds,
         list_solutions,
         list_true_performances
     )
@@ -136,6 +138,8 @@ def _heatmap_procedure(args, runner):
         list_solutions.append(solutions)
 
     return (
+        bin_means,
+        bin_stds,
         list_solutions,
         list_true_performances
     )
@@ -150,11 +154,12 @@ def collect_heatmap(args, runner):
 
     with temp_seed(args.seed + 20212021):
 
-        list_solutions, list_true_performances = _heatmap_procedure(args, runner)
+        bin_means, bin_stds, list_solutions, list_true_performances = _heatmap_procedure(args, runner)
 
     print(f"[eval | heatmap collecting] end")
 
     return (
+        bin_means, bin_stds,
         list_solutions,
         list_true_performances
     )
@@ -208,9 +213,11 @@ if __name__ == "__main__":
         eval_emulator_fpath = args.eval_emulator_fpath
         eval_runner.emulator_load(eval_emulator_fpath)
 
-    list_solutions, list_true_performances = collect_heatmap(args, eval_runner)
+    bin_means, bin_stds, list_solutions, list_true_performances = collect_heatmap(args, eval_runner)
 
     heatmaps_data = {
+        "bin_means": bin_means,
+        "bin_stds": bin_stds,
         "list_solutions": list_solutions,
         "list_true_performances": list_true_performances
     }

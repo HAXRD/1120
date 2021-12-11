@@ -3,11 +3,9 @@
 CUDA_VISIBLE_DEVICES=2
 seed=0
 
-n_BM=100
-n_ABS=2
-n_GU=40
+n_BM=200
 
-eval_emulator_fpath=results_5_mbp_vs_drl/BM100_ABS2_GU40_default/emulator_ckpts/best_emulator.pt
+eval_emulator_fpath=results_1_self_comparison/BM200_ABS5_GU100_default/emulator_ckpts/best_emulator.pt
 num_eval_episodes=1
 
 scenario=pattern
@@ -25,6 +23,6 @@ do
     --seed ${seed} \
     --eval_emulator_fpath ${eval_emulator_fpath} \
     --num_eval_episodes ${num_eval_episodes} \
-    --n_BM ${n_BM} --n_ABS ${n_ABS} --n_GU ${n_GU} \
+    --n_BM ${n_BM} \
     --method ${method}
 done

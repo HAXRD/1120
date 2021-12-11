@@ -11,13 +11,13 @@ eval_emulator_fpath=results_5_mbp_vs_drl/BM100_ABS2_GU40_default/emulator_ckpts/
 num_eval_episodes=1
 
 scenario=pattern
-name_addon=7_heatmaps
+name_addon=7_heatmap
 collect_strategy=default
 
 for method in naive-kmeans mutation-kmeans map-elites
 do
     CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-    python eval_6_demo.py \
+    python eval_7_heatmap.py \
     --scenario ${scenario} --name_addon ${name_addon} \
     --collect_strategy ${collect_strategy} \
     --splits 600 6_000 120_000 \

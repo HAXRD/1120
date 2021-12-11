@@ -63,7 +63,7 @@
                 // "--n_BM", "100",
                 // "--method", "mutation-kmeans"
 
-                // 'demo.py'
+                // 'eval_6_demo.py'
                 "--scenario", "pattern", "--name_addon", "dev_6",
                 "--seed", "0",
                 "--n_BM", "100", "--num_eval_episodes", "2",

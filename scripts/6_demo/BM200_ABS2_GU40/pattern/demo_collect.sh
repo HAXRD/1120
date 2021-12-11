@@ -17,7 +17,7 @@ collect_strategy=default
 for method in naive-kmeans mutation-kmeans map-elites
 do
     CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES} \
-    python eval_demo.py \
+    python eval_6_demo.py \
     --scenario ${scenario} --name_addon ${name_addon} \
     --collect_strategy ${collect_strategy} \
     --splits 600 6_000, 120_000 \

@@ -2,23 +2,104 @@
 # All rights reserved.
 
 """
-Create an eval env to perform a certain method for 2 episodes,
-store only the 2 collections of information of entities
-    1. before the 2nd episode start, i,e, GUs walked, but the algorithm
-    hasn't tracked;
-    2. after the algorithm found its best solution and dispatched
-    ABSs;
+Create an eval env to perform a certain method for 1 episodes,
+store only 2 collections of the entities statuses:
+    1. GU location randomly generated, ABSs location random
+    2. after algorithm computation, the 'optimal' ABS deployment.
 """
 
 import os
 import time
 import torch
 import numpy as np
-from pathlib import Path
 import random
 
+from pathlib import Path
+from tqdm import tqdm
+
 from common import run_preparation, make_env, dict2pkl
-from eval_shared import demo
+from eval_shared import temp_seed
+
+def _demo_pattern_procedure(args, runner):
+
+    # specs
+    episodes = args.num_eval_episodes
+    num_episodes_per_trial = args.num_episodes_per_trial
+    num_mutation_seeds = args.num_mutation_seeds
+    num_mutations_per_seed = args.num_mutations_per_seed
+    iterations = args.iterations
+    n_sample_individuals = args.num_sample_individuals
+    K = args.K
+    top_k = runner.top_k
+    render = args.render
+
+    entities_statuses = []
+
+    # start eval for pattern-style
+    for _episode in tqdm(range(episodes)):
+
+        # reset or walk
+        if _episode % num_episodes_per_trial == 0:
+            runner.env.reset()
+        else:
+            runner.env.walk()
+        runner.env.render(render)
+        entities_statuses.append(runner.env.get_entities_statuses())
+        P_GU = runner.env.get_P_GU()
+
+        # plan with different methods
+        if runner.method == "naive-kmeans":
+            batch_size, all_planning_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, top_k, 0)
+        elif runner.method == "mutation-kmeans":
+            batch_size, all_planning_P_ABSs = runner.mutation_kmeans_planning(top_k, P_GU, num_mutation_seeds, num_mutations_per_seed)
+        elif runner.method == "map-elites":
+            batch_size, all_planning_P_ABSs = runner.map_elites(top_k, P_GU, iterations, n_sample_individuals)
+        top_k_P_ABSs = all_planning_P_ABSs[:batch_size]
+
+        # interact with env
+        top_k_P_CGUs = np.zeros((batch_size, K, K), dtype=np.float32)
+        for _idx, _P_ABS in enumerate(top_k_P_ABSs):
+            runner.env.step(_P_ABS)
+            runner.env.render(render)
+            top_k_P_CGUs[_idx] = runner.env.get_P_CGU()
+
+        top_k_CRs = np.sum(top_k_P_CGUs.reshape(batch_size, -1), axis=1) / runner.env.world.n_ON_GU
+        sorted_idcs = np.argsort(-top_k_CRs, axis=-1)
+        top_k_P_ABSs = top_k_P_ABSs[sorted_idcs]
+
+        top_P_ABS = top_k_P_ABSs[0]
+
+        # perform the best P_ABS
+        runner.env.step(top_P_ABS)
+        runner.env.render(render)
+        entities_statuses.append(runner.env.get_entities_statuses())
+        print(f"performed best P_ABS for episode {_episode}")
+
+    return entities_statuses
+
+def _demo_precise_procedure(args, runner):
+    return None
+    pass
+
+def demo(args, runner):
+    """
+    Collect necessary information to draw a demo.
+    """
+
+    print(f"[eval | demo] start")
+
+    with temp_seed(args.seed + 20212021):
+
+        # TODO:
+        if args.scenario == "pattern":
+            entities_statuses = _demo_pattern_procedure(args, runner)
+        elif args.scenario == "precise":
+            entities_statuses = _demo_precise_procedure(args, runner)
+            pass
+
+    print(f"[eval | demo] end")
+
+    return entities_statuses
 
 if __name__ == "__main__":
 

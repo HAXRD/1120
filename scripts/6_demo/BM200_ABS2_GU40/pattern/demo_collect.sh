@@ -8,7 +8,7 @@ n_ABS=2
 n_GU=40
 
 eval_emulator_fpath=results_5_mbp_vs_drl/BM100_ABS2_GU40_default/emulator_ckpts/best_emulator.pt
-num_eval_episodes=2
+num_eval_episodes=1
 
 scenario=pattern
 name_addon=6_demo

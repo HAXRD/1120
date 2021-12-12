@@ -16,6 +16,7 @@ import random
 
 from pathlib import Path
 from tqdm import tqdm
+from copy import deepcopy
 
 from common import run_preparation, make_env, dict2pkl
 from eval_shared import temp_seed
@@ -44,7 +45,7 @@ def _demo_pattern_procedure(args, runner):
         else:
             runner.env.walk()
         runner.env.render(render)
-        entities_statuses.append(runner.env.get_entities_statuses())
+        entities_statuses.append(deepcopy(runner.env.get_entities_statuses()))
         P_GU = runner.env.get_P_GU()
 
         # plan with different methods
@@ -72,7 +73,7 @@ def _demo_pattern_procedure(args, runner):
         # perform the best P_ABS
         runner.env.step(top_P_ABS)
         runner.env.render(render)
-        entities_statuses.append(runner.env.get_entities_statuses())
+        entities_statuses.append(deepcopy(runner.env.get_entities_statuses()))
         print(f"performed best P_ABS for episode {_episode}")
 
     return entities_statuses

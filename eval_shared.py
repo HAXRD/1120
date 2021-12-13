@@ -92,8 +92,6 @@ def _pattern_procedure(args, runner, RENDER):
     # start eval for pattern-style
     for _episode in tqdm(range(episodes)):
 
-        start = time.time()
-
         # reset or walk
         if _episode % num_episodes_per_trial == 0:
             runner.env.reset()
@@ -127,9 +125,6 @@ def _pattern_procedure(args, runner, RENDER):
         episodes_CRs[_episode, :] = top_CR
         # overwrite previous top_k steps
         episodes_CRs[_episode, :batch_size] = top_k_CRs
-
-        end = time.time()
-        print(f"[eval | top {top_CR_info} | {end - start}s] finished!")
 
     return episodes_CRs
 

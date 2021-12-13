@@ -184,22 +184,36 @@ class Runner(object):
         K = self.K
         L = self.L
 
-        start = time.time()
         self.logger.info(f"[runner | {self.method}] start.")
         """Get planning P_ABSs"""
         unique_populations = set()
 
         for _seed in range(num_seeds):
+            ts1 = time.time()   # TODO: timestamp
+
             base_kmeans_P_ABS = self.env.find_KMEANS_P_ABS(_seed)
+            ts2 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts2 - ts1}s]")
+
             base_kmeans_P_ABS_idx = tuple(sorted(get_nonzero_indices(base_kmeans_P_ABS.reshape(-1))))
+            ts3 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts3 - ts2}s]")
+
             if base_kmeans_P_ABS_idx not in unique_populations:
                 unique_populations.add(base_kmeans_P_ABS_idx)
+                ts4 = time.time()   # TODO: timestamp
+                self.logger.debug(f"[seed {_seed} | {ts4 - ts3}s]")
 
                 # use base pattern to sample
                 for _ in range(num_samples_per_seed):
                     sampled_P_ABS_idx = tuple(sorted(mutate_1_sequence(base_kmeans_P_ABS_idx, K, L)))
                     if sampled_P_ABS_idx not in unique_populations:
                         unique_populations.add(sampled_P_ABS_idx)
+                ts5 = time.time()   # TODO: timestamp
+                self.logger.debug(f"[seed {_seed} | {ts5 - ts4}s]")
+            ts6 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts6 - ts1}s]")
+
         planning_size = len(unique_populations)
         planning_P_ABSs = np.zeros((planning_size, K * K), dtype=np.float32)
 
@@ -220,9 +234,6 @@ class Runner(object):
             return_planning_P_ABSs = sorted_P_ABSs
         else:
             return_planning_P_ABSs = planning_P_ABSs
-
-        end = time.time()
-        self.logger.info(f"[runner | {self.method} | {end - start}s] done.")
 
         top_k = min(top_k, return_planning_P_ABSs.shape[0])
         return (
@@ -448,34 +459,48 @@ class Runner(object):
         )
         """
 
-        start = time.time()
         self.logger.info(f"[runner | {self.method}] start.")
         """Start MAP-Elites"""
         # reinitialize mapelites
+        ts1 = time.time()    # TODO: timestamp
         self._reinit_map()
+        ts2 = time.time()    # TODO: timestamp
+        self.logger.debug(f"[_reinit_map() | {ts2 - ts1}s]")
 
         # bootstrap
         P_ABSs, CRs = self._bootstrap(P_GU, n_sample_individuals)
+        ts3 = time.time()   # TODO: timestamp
+        self.logger.debug(f"[_bootstrap() | {ts3 - ts2}s]")
+
         self._place_in_mapelites(P_ABSs, CRs)
+        ts4 = time.time()   # TODO: timestamp
+        self.logger.debug(f"[_place_in_mapelites | {ts4 - ts3}s]")
 
         # tdqm: progress bar
 
         for i in range(iterations):
             self.logger.debug(f"[runner | map-elites | ITERATION {i}]")
 
+            ts5 = time.time()   # TODO: timestamp
             # get indices of random individuals from the map of elites
             individuals = self._random_selection(n_sample_individuals) # list of unique P_ABSs
+            ts6 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[_random_selection | {ts6 - ts5}s]")
             # mutation the individuals
             P_ABSs, CRs = self._mutation(P_GU, individuals) # list of unique P_ABSs
+            ts7 = time.time()
+            self.logger.debug(f"[_mutation | {ts7 - ts6}s]")
 
             # place the new individuals in the map of elites
             self._place_in_mapelites(P_ABSs, CRs)
+            ts8 = time.time()
+            self.logger.debug(f"[_place_in_mapelites | {ts8 - ts7}s]")
 
         # select top_k best performed P_ABSs
+        ts9 = time.time()
         all_P_ABSs = self._get_all_sorted_solutions()
-
-        end = time.time()
-        self.logger.info(f"[runner | {self.method} | {end - start}s] MAP-Elites done.")
+        ts10 = time.time()
+        self.logger.debug(f"[_get_all_sorted_solutions | {ts10 - ts9}s]")
 
         top_k = min(top_k, all_P_ABSs.shape[0])
         return (

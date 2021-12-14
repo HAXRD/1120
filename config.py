@@ -130,7 +130,7 @@ def get_config():
                         help="# of episodes for each trial, between each trial, reset env.")
 
     ## planning methods
-    parser.add_argument("--planning_batch_size", type=int, default=256,
+    parser.add_argument("--planning_batch_size", type=int, default=512,
                         help="batch size for planning.")
 
     # naive-kmeans

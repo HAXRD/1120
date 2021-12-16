@@ -8,11 +8,14 @@ import numpy as np
 import random
 import torch
 import logging
+
 from pathlib import Path
 from numpy.random import default_rng
 from pprint import pprint
 from tqdm import tqdm
 from scipy.spatial import distance
+
+from common import binary_search
 
 def generate_1_sequence(size, MAX):
     rng = default_rng()
@@ -62,7 +65,6 @@ def _t2n(x):
 def _n2t(x, device=torch.device('cpu')):
     return torch.FloatTensor(x).to(device)
 
-
 class Runner(object):
     """
     Pattern-style runner class. An implementation of 'Model-Based Planning' algorithm.
@@ -99,8 +101,39 @@ class Runner(object):
         self.L = self.args.L
 
         # map-elites
-        self.bin_means = [i for i in range(int(self.K * math.sqrt(2)))]
-        self.bin_stds  = [i for i in range(int(self.K * math.sqrt(2) / 2))]
+        # custom adjusted bin size
+        """
+        mean bins:
+            0~10,  bin_size = 10.
+            10~20, bin_size = 1.
+            20~30, bin_size = 0.5
+            30~40, bin_size = 0.25
+            40~50, bin_size = 0.5
+            50~60, bin_size = 1.
+            >60,   bin_size = inf
+        stds bins:
+            0~5,   bin_size = 0.5
+            5~15,  bin_size = 0.25
+            15~25, bin_size = 0.5
+            25~35, bin_size = 1.
+            35~45, bin_size = inf
+        """
+        def _gen_bins(start_val: float, end_val: float, bin_size=float('inf')):
+            if bin_size == float('inf'):
+                bin_size = end_val - start_val
+            return [(start_val + bin_size * i) for i in range(int((end_val - start_val) / bin_size))]
+        self.bin_means = _gen_bins(0, 10, 10.) + \
+                         _gen_bins(10, 20, 1.) + \
+                         _gen_bins(20, 30, 0.5) + \
+                         _gen_bins(30, 40, 0.25) + \
+                         _gen_bins(40, 50, 0.5) + \
+                         _gen_bins(50, 60, 1.) + \
+                         _gen_bins(60, 90)
+        self.bin_stds = _gen_bins(0, 5, 0.5) + \
+                        _gen_bins(5, 15, 0.25) + \
+                        _gen_bins(15, 25, 0.5) + \
+                        _gen_bins(25, 35, 1.) + \
+                        _gen_bins(35, 45)
 
         self.ft_bins = [len(self.bin_means), len(self.bin_stds)]
 
@@ -143,30 +176,44 @@ class Runner(object):
         to naive_kmeans.
 
         :return: (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            return_planning_P_ABSs
         )
         """
 
         K = self.K
         L = self.L
 
-        start = time.time()
         self.logger.info(f"[runner | {self.method}] start.")
         """Get planning P_ABSs"""
         unique_populations = set()
 
         for _seed in range(num_seeds):
+            ts1 = time.time()   # TODO: timestamp
+
             base_kmeans_P_ABS = self.env.find_KMEANS_P_ABS(_seed)
+            ts2 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts2 - ts1}s]")
+
             base_kmeans_P_ABS_idx = tuple(sorted(get_nonzero_indices(base_kmeans_P_ABS.reshape(-1))))
+            ts3 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts3 - ts2}s]")
+
             if base_kmeans_P_ABS_idx not in unique_populations:
                 unique_populations.add(base_kmeans_P_ABS_idx)
+                ts4 = time.time()   # TODO: timestamp
+                self.logger.debug(f"[seed {_seed} | {ts4 - ts3}s]")
 
                 # use base pattern to sample
                 for _ in range(num_samples_per_seed):
                     sampled_P_ABS_idx = tuple(sorted(mutate_1_sequence(base_kmeans_P_ABS_idx, K, L)))
                     if sampled_P_ABS_idx not in unique_populations:
                         unique_populations.add(sampled_P_ABS_idx)
+                ts5 = time.time()   # TODO: timestamp
+                self.logger.debug(f"[seed {_seed} | {ts5 - ts4}s]")
+            ts6 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[seed {_seed} | {ts6 - ts1}s]")
+
         planning_size = len(unique_populations)
         planning_P_ABSs = np.zeros((planning_size, K * K), dtype=np.float32)
 
@@ -183,18 +230,15 @@ class Runner(object):
             """Use planning to find believed top_k P_ABSs"""
             repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
 
-            _, top_k_P_ABSs, _, _ = self.plan(top_k, repeated_P_GUs, planning_P_ABSs)
-
+            sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
+            return_planning_P_ABSs = sorted_P_ABSs
         else:
-            top_k_P_ABSs = planning_P_ABSs
+            return_planning_P_ABSs = planning_P_ABSs
 
-        end = time.time()
-        self.logger.info(f"[runner | {self.method} | {end - start}s] done.")
-
-        batch_size = top_k_P_ABSs.shape[0]
+        top_k = min(top_k, return_planning_P_ABSs.shape[0])
         return (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            return_planning_P_ABSs
         )
 
     ############### map-elites ###############
@@ -238,11 +282,14 @@ class Runner(object):
         """Use planning"""
         repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
 
-        _, P_ABSs, _, CRs = self.plan(planning_size, repeated_P_GUs, planning_P_ABSs)
+        sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
+
+        top_planning_size_P_ABSs = sorted_P_ABSs[:planning_size]
+        top_planning_size_rec_CRs = sorted_rec_CRs[:planning_size]
 
         return (
-            P_ABSs,
-            CRs
+            top_planning_size_P_ABSs,
+            top_planning_size_rec_CRs
         )
 
     def _map_x_to_b(self, x):
@@ -275,8 +322,16 @@ class Runner(object):
 
         self.logger.info(f"[runner | map-elites] mean {mean}, std{std}")
 
-        i = int(np.clip(mean, self.bin_means[0], self.bin_means[-1] + 1))
-        j = int(np.clip(std, self.bin_stds[0], self.bin_stds[-1] + 1))
+        i = binary_search(self.bin_means, mean)
+        j = binary_search(self.bin_stds, std)
+
+        # do check
+        assert self.bin_means[i] <= mean
+        if i < len(self.bin_means) - 1:
+            assert mean < self.bin_means[i + 1]
+        assert self.bin_stds[j] <= std
+        if j < len(self.bin_stds) - 1:
+            assert std < self.bin_stds[j + 1]
 
         return (
             i, j
@@ -360,16 +415,21 @@ class Runner(object):
         """Use planning"""
         repeated_P_GUs = np.repeat(np.expand_dims(P_GU, 0), planning_size, axis=0)
 
-        _, P_ABSs, _, CRs = self.plan(planning_size, repeated_P_GUs, planning_P_ABSs)
+        sorted_P_GUs, sorted_P_ABSs, sorted_P_rec_CGUs, sorted_rec_CRs = self.plan(repeated_P_GUs, planning_P_ABSs)
+
+        top_planning_size_P_ABSs = sorted_P_ABSs[:planning_size]
+        top_planning_size_rec_CRs = sorted_rec_CRs[:planning_size]
 
         return (
-            P_ABSs,
-            CRs
+            top_planning_size_P_ABSs,
+            top_planning_size_rec_CRs
         )
 
-    def _get_most_promising_solutions(self, top_k):
+    def _get_all_sorted_solutions(self):
         """
         Select top_k solutions from map
+        Get all solutions sorted (by emulator) from map
+
         :return solutions: (list), a list of P_ABSs
         """
 
@@ -383,10 +443,10 @@ class Runner(object):
         candidates_perfs = np.array(candidates_perfs)
         candidates_solus = np.array(candidates_solus)
 
-        sorted_indices = np.argsort(-candidates_perfs)[:top_k]
+        sorted_indices = np.argsort(-candidates_perfs)
         solutions = candidates_solus[sorted_indices]
 
-        self.logger.info(f"[runner | map-elites] found {len(solutions)} most promising solutions.")
+        self.logger.info(f"[runner | map-elites] found all {len(solutions)} solutions.")
         return solutions
 
     def map_elites(self, top_k, P_GU, iterations, n_sample_individuals):
@@ -399,53 +459,68 @@ class Runner(object):
         )
         """
 
-        start = time.time()
         self.logger.info(f"[runner | {self.method}] start.")
         """Start MAP-Elites"""
         # reinitialize mapelites
+        ts1 = time.time()    # TODO: timestamp
         self._reinit_map()
+        ts2 = time.time()    # TODO: timestamp
+        self.logger.debug(f"[_reinit_map() | {ts2 - ts1}s]")
 
         # bootstrap
         P_ABSs, CRs = self._bootstrap(P_GU, n_sample_individuals)
+        ts3 = time.time()   # TODO: timestamp
+        self.logger.debug(f"[_bootstrap() | {ts3 - ts2}s]")
+
         self._place_in_mapelites(P_ABSs, CRs)
+        ts4 = time.time()   # TODO: timestamp
+        self.logger.debug(f"[_place_in_mapelites | {ts4 - ts3}s]")
 
         # tdqm: progress bar
-        
+
         for i in range(iterations):
             self.logger.debug(f"[runner | map-elites | ITERATION {i}]")
 
+            ts5 = time.time()   # TODO: timestamp
             # get indices of random individuals from the map of elites
             individuals = self._random_selection(n_sample_individuals) # list of unique P_ABSs
+            ts6 = time.time()   # TODO: timestamp
+            self.logger.debug(f"[_random_selection | {ts6 - ts5}s]")
             # mutation the individuals
             P_ABSs, CRs = self._mutation(P_GU, individuals) # list of unique P_ABSs
+            ts7 = time.time()
+            self.logger.debug(f"[_mutation | {ts7 - ts6}s]")
 
             # place the new individuals in the map of elites
             self._place_in_mapelites(P_ABSs, CRs)
+            ts8 = time.time()
+            self.logger.debug(f"[_place_in_mapelites | {ts8 - ts7}s]")
 
         # select top_k best performed P_ABSs
-        top_k_P_ABSs = self._get_most_promising_solutions(top_k)
+        ts9 = time.time()
+        all_P_ABSs = self._get_all_sorted_solutions()
+        ts10 = time.time()
+        self.logger.debug(f"[_get_all_sorted_solutions | {ts10 - ts9}s]")
 
-        end = time.time()
-        self.logger.info(f"[runner | {self.method} | {end - start}s] MAP-Elites done.")
-
-        batch_size = top_k_P_ABSs.shape[0]
+        top_k = min(top_k, all_P_ABSs.shape[0])
         return (
-            batch_size,
-            top_k_P_ABSs
+            top_k,
+            all_P_ABSs
         )
 
     ############### planning ###############
-    def plan(self, top_k, repeated_P_GUs, planning_P_ABSs):
+    def plan(self, repeated_P_GUs, planning_P_ABSs):
         """
-        Use emulator to predict `P_rec_CGU`, then select `top_k` transitions.
+        Use emulator to predict `P_rec_CGU`, then sort transitions according
+        to CRs.
 
         :param repeated_P_GUs : (planning_size, K, K)
         :param planning_P_ABSs: (planning_size, K, K)
         :return: (
-            top_k_P_GUs,
-            top_k_P_ABSs,
-            top_k_P_CGUs,
-            top_k_CRs
+            sorted_P_GUs,
+            sorted_P_ABSs,
+            sorted_P_rec_CGUs,
+            sorted_rec_CRs
         )
         """
         K = self.K
@@ -473,16 +548,16 @@ class Runner(object):
 
         P_rec_CGUs = y_hats
         rec_CRs = np.sum(P_rec_CGUs.reshape(planning_size, -1), axis=-1) / self.env.world.n_ON_GU # (planning_size,)
-        top_k_idcs = np.argsort(-rec_CRs, axis=-1)[:top_k]
+        sorted_idcs = np.argsort(-rec_CRs, axis=-1)
 
-        top_k_P_GUs  = repeated_P_GUs[top_k_idcs]
-        top_k_P_ABSs = planning_P_ABSs[top_k_idcs]
-        top_k_P_rec_CGUs = P_rec_CGUs[top_k_idcs]
-        top_k_CRs = rec_CRs[top_k_idcs]
+        sorted_P_GUs  = repeated_P_GUs[sorted_idcs]
+        sorted_P_ABSs = planning_P_ABSs[sorted_idcs]
+        sorted_P_rec_CGUs = P_rec_CGUs[sorted_idcs]
+        sorted_rec_CRs = rec_CRs[sorted_idcs]
 
         return (
-            top_k_P_GUs,
-            top_k_P_ABSs,
-            top_k_P_rec_CGUs,
-            top_k_CRs
+            sorted_P_GUs,
+            sorted_P_ABSs,
+            sorted_P_rec_CGUs,
+            sorted_rec_CRs
         )

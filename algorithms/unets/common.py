@@ -16,7 +16,7 @@ class ConvBlock(nn.Module):
             nn.BatchNorm2d(ch_out),
             nn.ReLU(inplace=True)
         )
-    
+
     def forward(self, x):
         x = self.conv(x)
         return x

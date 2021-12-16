@@ -2,11 +2,37 @@
 # All rights reserved.
 
 import os
+import torch
 import numpy as np
-import csv
+import random
+import pickle
+
+from pprint import pprint
+from pathlib import Path
 from glob import glob
-from envs.sse.SSE_env import SSEEnv
 from tqdm import tqdm
+
+from envs.sse.SSE_env import SSEEnv
+from config import get_config
+
+def binary_search(arr, x):
+    low = 0
+    high = len(arr) - 1
+    mid = 0
+
+    while low <= high:
+
+        mid = (low + high) // 2
+
+        if arr[mid] <= x:
+            if mid == len(arr) - 1:
+                return mid
+            if mid < len(arr) - 1 and x < arr[mid + 1]:
+                return mid
+            if x >= arr[mid + 1]:
+                low = mid + 1
+        elif x < arr[mid]:
+            high = mid
 
 def make_env(args, TYPE):
     assert TYPE in ["base", "train", "eval"]
@@ -20,14 +46,9 @@ def make_env(args, TYPE):
     seed = a * args.seed + b
     env = SSEEnv(args, is_base, seed)
     env.seed(seed)
-    return env
+    print(f"[env | seed] processed seed for env is {seed}")
 
-def dict2csv(output_dict, fpath):
-    with open(fpath, "w") as f:
-        writer = csv.writer(f, delimiter=',')
-        for k, v in output_dict.items():
-            v = [k] + v
-            writer.writerow(v)
+    return env
 
 def sync(fh):
     """This make sure data is writter to disk."""
@@ -62,3 +83,63 @@ def load_n_copy(replay, replay_dir, prefix):
         data = P_GUs, P_ABSs, P_CGUs
         replay.paste(data)
         del data
+
+def dict2pkl(output_dict, pkl_fpath):
+    with open(pkl_fpath, "wb") as f:
+        pickle.dump(output_dict, f)
+
+def pkl2dict(pkl_fpath):
+    with open(pkl_fpath, "rb") as f:
+        loaded_dict = pickle.load(f)
+    return loaded_dict
+
+def run_preparation():
+    """
+    Shared code snippet across all simulation related code.
+    Call this function before do further ops.
+
+    :return: (
+        args,
+        run_dir
+    )
+    """
+
+    # get specs
+    parser = get_config()
+    args = parser.parse_args()
+    pprint(vars(args))
+
+    # run dir
+    run_dir = args.run_dir
+    assert isinstance(run_dir, Path)
+    if not run_dir.exists():
+        os.makedirs(str(run_dir))
+
+    return (
+        args,
+        run_dir
+    )
+
+def get_replay_fpaths(replay_dir, prefix, SHUFFLE_FILE_ORDER=False):
+    """
+    Get all pattern files in given directory.
+    """
+
+    GUs_fpaths, ABSs_fpaths, CGUs_fpaths = [
+        sorted(glob(os.path.join(replay_dir, f"{prefix}_{pname}_*.npz")))
+        for pname in ["GUs", "ABSs", "CGUs"]
+    ]
+
+    if SHUFFLE_FILE_ORDER:
+        n_files = len(GUs_fpaths)
+        perm = np.arange(n_files)
+        np.random.shuffle(perm)
+
+        GUs_fpaths  = [GUs_fpaths[i]  for i in perm]
+        ABSs_fpaths = [ABSs_fpaths[i] for i in perm]
+        CGUs_fpaths = [CGUs_fpaths[i] for i in perm]
+        print(f"[pretrain | {prefix}] replay fpaths shuffled!")
+    print(f"[pretrain | {prefix}] get all {prefix} file paths.")
+    return (
+        GUs_fpaths, ABSs_fpaths, CGUs_fpaths
+    )

@@ -36,6 +36,8 @@ def gen_BMs(world_len, mesh_len, n_BM, save_dir, seed=2021):
         'grids': grids,
     }
 
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
     save_path = os.path.join(save_dir, fname)
     sio.savemat(save_path, mat)
     return mat, save_path
@@ -45,7 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--world_len', type=float, default=1000)
     parser.add_argument('--mesh_len', type=float, default=31.25)
     parser.add_argument('--n_BM', type=int, required=True)
-    parser.add_argument('--save_dir', type=str, default='./')
+    parser.add_argument('--save_dir', type=str, default='./terrains')
     parser.add_argument('--seed', type=int, default=2021)
     parser.add_argument('--random_h', action='store_false', default=True,
                         help="by default true, using random height.")

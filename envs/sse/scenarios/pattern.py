@@ -74,6 +74,7 @@ class Scenario(BaseScenario):
         #### reset CRs to 0.s ####
         world.CR_old = 0.
         world.CR_new = 0.
+        # print("[env | reset] reset world.")
 
 
     ############## Getters ##############
@@ -175,5 +176,13 @@ class Scenario(BaseScenario):
 
         P_CGU /= world.n_ON_GU if NORMALIZED else 1.
         return P_CGU
+
+    def get_entities_statuses(self, world):
+        return {
+            "BMs":  world.BMs,
+            "ABSs": world.ABSs,
+            "GUs":  world.GUs,
+            "world_len": world.world_len
+        }
 
     ############## Setters ##############

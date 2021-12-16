@@ -1,4 +1,4 @@
-    # Copyright (c) 2021, Xu Chen, FUNLab, Xiamen University
+# Copyright (c) 2021, Xu Chen, FUNLab, Xiamen University
 # All rights reserved.
 
 import os
@@ -24,7 +24,7 @@ def get_config():
                         help="# of steps to explore for each episode.")
     parser.add_argument("--n_step_serve", type=int, default=60,
                         help="# of steps to serve for each episode.")
-    parser.add_argument("--n_BM", type=int, default=150,
+    parser.add_argument("--n_BM", type=int, required=True,
                         help="# of BMs for Site-specific environment.")
     parser.add_argument("--n_ABS", type=int, default=5,
                         help="# of ABSs.")
@@ -107,8 +107,9 @@ def get_config():
     ####### pattern only #######
     ## emulator φ params
     parser.add_argument("--collect_strategy", type=str, default="default",
-                        help="either 'default' or 'subset' or 'hybrid'.")
-    parser.add_argument("--emulator_net_size", type=str, default="option2")
+                        help="either 'default' or 'half' or 'third' or 'variable'. For 'default', 1 episode will sample 2 replays, 'half' will sample 4 replays, 'third' will sample 6 replays.")
+    parser.add_argument("--emulator_net_size", type=str, default="default",
+                        help="AttentionUNet configuration for emulator.")
     parser.add_argument("--splits", type=int, nargs="+",
                         help="# of episodes for different sets when training emulator.")
     parser.add_argument("--file_episode_limit", type=int, default=50000,
@@ -125,11 +126,11 @@ def get_config():
     parser.add_argument("--emulator_lr", type=float, default=1.e-4,
                         help="lr for emulator.")
     ## emulator φ params
-    parser.add_argument("--num_episodes_per_trial", default=20,
+    parser.add_argument("--num_episodes_per_trial", type=int, default=20,
                         help="# of episodes for each trial, between each trial, reset env.")
 
     ## planning methods
-    parser.add_argument("--planning_batch_size", type=int, default=256,
+    parser.add_argument("--planning_batch_size", type=int, default=512,
                         help="batch size for planning.")
 
     # naive-kmeans
@@ -158,26 +159,45 @@ def get_config():
 
     # pattern
 
+    # 3_adaptive_to_variable_entities
+    parser.add_argument("--eval_emulator_fpath", type=str,
+                        help="emulator file path for '3_adaptive_to_variable_entities.py' & 'eval_emulator.py' evaluation.")
+    parser.add_argument("--variable_n_ABS", action="store_true", default=False,
+                        help="toggle variable number of ABSs.")
+    parser.add_argument("--variable_n_GU", action="store_true", default=False,
+                        help="toggle variable number of GUs.")
 
     ####### additional parsing #######
     args = parser.parse_known_args()[0]
 
     K = int(args.world_len / args.granularity)
 
-    BMs_fname = f"terrain-{args.n_BM}.mat"
+    BMs_fname = f"./terrains/terrain-{args.n_BM}.mat"
     n_step = args.n_step_explore + args.n_step_serve
     step_duration = args.episode_duration / n_step
+    
+    collect_strategy = args.collect_strategy
+    method = args.method
+    if args.scenario == "pattern":
+        assert collect_strategy in ["default", "half", 'third', "variable"]
+        assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
+
+    variable_n_ABS = args.variable_n_ABS
+    variable_n_GU = args.variable_n_GU
+
+    variable_addon = ""
+    if collect_strategy == "variable":
+        if variable_n_ABS:
+            variable_addon += "_var_ABS"
+        if variable_n_GU:
+            variable_addon += "_var_GU"
+
     run_dir = Path(os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         f"results{'' if args.name_addon == '' else '_' + args.name_addon}",
-        f"{args.n_ABS}ABS_{args.n_GU}GU",
-        f"{args.scenario}" + f"{'' if args.scenario == 'precise' else '_' + str(K) + 'K'}"
+        f"BM{args.n_BM}_ABS{args.n_ABS}_GU{args.n_GU}_{args.collect_strategy}{variable_addon}"
     ))
-    method = args.method
-    collect_strategy = args.collect_strategy
-    if args.scenario == "pattern":
-        assert method in ["", "naive-kmeans", "mutation-kmeans", "map-elites"]
-        assert collect_strategy in ["default", "subset", "hybrid"]
+
     parser.add_argument("--K", type=int, default=K,
                         help="K x K pattern.")
 
@@ -197,7 +217,7 @@ def get_config():
                     args.p_non)
     parser.add_argument("--PL", type=float, default=PL,
                         help="breaking-point path loss with given specs.")
-
+    assert args.render in ["human", "non-display"]
     return parser
 
 if __name__ == "__main__":

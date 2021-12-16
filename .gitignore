@@ -129,4 +129,10 @@ dmypy.json
 .pyre/
 
 # *.mat
-results*
+# results*
+*bak
+*debug
+*.npz
+emulator-*.pt
+pretrain_tb
+*dev*

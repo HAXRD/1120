@@ -1,9 +1,0 @@
-Explore:Serve,Method,Top 1,Top 2,Top 3,Top 5,Top 10,Top k
-10:90,map-elites,0.66,0.9,0.96,1.0,1.0,1.0
-10:90,mutation-kmeans,0.74,0.93,0.98,1.0,1.0,1.0
-20:80,map-elites,0.81,0.97,0.99,1.0,1.0,1.0
-20:80,mutation-kmeans,0.89,0.99,0.99,1.0,1.0,1.0
-30:70,map-elites,0.88,0.99,1.0,1.0,1.0,1.0
-30:70,mutation-kmeans,0.92,1.0,1.0,1.0,1.0,1.0
-40:60,map-elites,0.9,0.99,1.0,1.0,1.0,1.0
-40:60,mutation-kmeans,0.94,1.0,1.0,1.0,1.0,1.0
